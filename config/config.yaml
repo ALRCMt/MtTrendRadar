@@ -125,10 +125,10 @@ rss:
     - id: "gitHub-trending"
       name: "GitHub Trending"
       url: "https://mshibanern.github.io/GitHubTrendingRSS/daily/all.xml"
-    - id: "bilibili-up-dynamic"
-      name: "Bilibili UP 主动态"
+    - id: "bilibili-up-ppx"
+      name: "ppx"
       # 示例：把 325903362 换成你自己的 UID
-      url: "https://hub.slarker.me/bilibili/user/dynamic/325903362/showEmoji=1&embed=0&hideGoods=1"
+      url: "https://rsshub.liumingye.cn/bilibili/user/video/325903362"
 
 
     # 自定义源示例
