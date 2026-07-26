@@ -128,7 +128,10 @@ rss:
     - id: "bilibili-up-ppx"
       name: "ppx"
       # 示例：把 325903362 换成你自己的 UID
-      url: "https://rsshub.liumingye.cn/bilibili/user/video/325903362"
+      url: "https://rsshub.liumingye.cn/bilibili/user/video/483215864"
+    - id: "bilibili-weekly"
+      name: "BiliBili 周榜"
+      url: "https://hub.slarker.me/bilibili/weekly"
 
 
     # 自定义源示例
