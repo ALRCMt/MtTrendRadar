@@ -110,7 +110,7 @@ rss:
   freshness_filter:
     enabled: true                     # 是否启用新鲜度过滤（true=启用, false=关闭）
 
-    max_age_days: 7                   # 最大文章年龄（天）
+    max_age_days:                    # 最大文章年龄（天）
                                       # - 正整数：只推送 N 天内的文章
                                       # - 0：禁用过滤，推送所有文章
 
@@ -125,7 +125,6 @@ rss:
     - id: "gitHub-trending"
       name: "GitHub Trending"
       url: "https://mshibanern.github.io/GitHubTrendingRSS/daily/all.xml"
-
     - id: "bilibili-weekly"
       name: "BiliBili 周榜"
       url: "https://hub.slarker.me/bilibili/weekly"
