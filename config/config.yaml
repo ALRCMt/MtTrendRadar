@@ -119,16 +119,16 @@ rss:
   # - 正整数：覆盖全局设置，只推送此天数内的文章
   # - 0：禁用此频道的新鲜度过滤，推送所有文章
   feeds:
-    - id: "hacker-news"
-      name: "Hacker News"
-      url: "https://hnrss.org/frontpage"
+    # - id: "hacker-news"
+    #   name: "Hacker News"
+    #   url: "https://hnrss.org/frontpage"
     - id: "gitHub-trending"
       name: "GitHub Trending"
       url: "https://mshibanern.github.io/GitHubTrendingRSS/daily/all.xml"
     - id: "bilibili-up-dynamic"
       name: "Bilibili UP 主动态"
       # 示例：把 325903362 换成你自己的 UID
-      url: "https://rsshub.app/bilibili/user/dynamic/325903362/showEmoji=1&embed=0&hideGoods=1"
+      url: "https://hub.slarker.me/bilibili/user/dynamic/325903362/showEmoji=1&embed=0&hideGoods=1"
 
 
     # 自定义源示例
