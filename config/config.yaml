@@ -234,6 +234,9 @@ rss:
     - id: "nature"
       name: "Nature"
       url: "https://www.nature.com/nature.rss"
+    - id: "huanqiukexue"
+      name: "环球科学"
+      url: "https://www.huanqiukexue.com/?feed=rss2"
 
     # ─────────────────────────────────────────────────
     # 中文深度报道/商业科技
