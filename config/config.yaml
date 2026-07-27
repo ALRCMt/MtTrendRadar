@@ -241,6 +241,9 @@ rss:
     - id: "36kr"
       name: "36氪"
       url: "https://36kr.com/feed"
+    - id: "ark"
+      name: "明日方舟"
+      url: "https://hub.slarker.me/hypergryph/arknights/announce"
 
     # 自定义源示例
     # - id: "custom-feed"
@@ -347,7 +350,7 @@ display:
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
     platforms: ["zaobao", "bilibili-hot-search"]     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
-    rss_feeds: ["ruanyifeng", "microcomputer", "2xnz"]           # RSS 源 ID 列表（如 ["hacker-news"]）
+    rss_feeds: ["ruanyifeng", "microcomputer", "2xnz", "ark"]           # RSS 源 ID 列表（如 ["hacker-news"]）
     max_items: 15                                # 每个源最多展示条数（0=不限制）
 
 

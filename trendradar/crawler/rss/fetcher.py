@@ -74,6 +74,13 @@ class RSSFetcher:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
             "Accept": "application/feed+json, application/json, application/rss+xml, application/atom+xml, application/xml, text/xml, */*",
             "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Referer": "https://linux.do/",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
         })
 
         if self.use_proxy and self.proxy_url:
@@ -95,7 +102,17 @@ class RSSFetcher:
             (条目列表, 错误信息) 元组
         """
         try:
-            response = self.session.get(feed.url, timeout=self.timeout)
+            # 403 重试：部分站点（如 linux.do）偶尔会临时封禁，重试可缓解
+            max_retries = 2
+            response = None
+            for attempt in range(max_retries + 1):
+                response = self.session.get(feed.url, timeout=self.timeout)
+                if response.status_code != 403:
+                    break
+                if attempt < max_retries:
+                    wait = (attempt + 1) * 3.0 + random.uniform(0, 1.0)
+                    print(f"[RSS] {feed.name}: 收到 403，{wait:.1f}s 后第 {attempt + 2} 次尝试...")
+                    time.sleep(wait)
             response.raise_for_status()
 
             parsed_items = self.parser.parse(response.text, feed.url)
