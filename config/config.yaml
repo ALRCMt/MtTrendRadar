@@ -176,7 +176,7 @@ rss:
       name: "Microcomputer"
       url: "http://x1.mcplive.cn/?feed=rss2"
     - id: "linuxdo"
-      name: "Linux.do"
+      name: "Linuxdo"
       url: "https://linux.do/latest.rss"
     - id: "v2ex"
       name: "V2EX"
