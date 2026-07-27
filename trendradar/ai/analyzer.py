@@ -266,6 +266,17 @@ class AIAnalyzer:
         hotlist_total = sum(len(s.get("titles", [])) for s in stats) if stats else 0
         rss_total = sum(len(s.get("titles", [])) for s in rss_stats) if rss_stats else 0
 
+        # 当 RSS 启用且有数据时，为 RSS 预留至少 30 条配额（或 max_news 的 20%，取较大值），
+        # 避免热榜条目数超过 max_news_for_analysis 时 RSS 完全没有内容传给 AI，
+        # 导致 AI 收到空的 {rss_content} 后按提示词规则输出"暂无RSS数据"。
+        has_rss = self.include_rss and rss_stats and rss_total > 0
+        hotlist_cap = self.max_news
+        if has_rss:
+            min_rss_allocation = max(30, int(self.max_news * 0.2))
+            hotlist_cap = max(0, self.max_news - min_rss_allocation)
+            if hotlist_cap < self.max_news:
+                print(f"[AI] RSS 有数据，为 RSS 预留至少 {min_rss_allocation} 条配额，热榜上限: {hotlist_cap}")
+
         # 热榜内容
         if stats:
             for stat in stats:
@@ -315,13 +326,13 @@ class AIAnalyzer:
                         news_lines.append(line)
 
                         news_count += 1
-                        if news_count >= self.max_news:
+                        if news_count >= hotlist_cap:
                             break
-                if news_count >= self.max_news:
+                if news_count >= hotlist_cap:
                     break
 
         # RSS 内容（仅在启用时构建）
-        if self.include_rss and rss_stats:
+        if has_rss:
             remaining = self.max_news - news_count
             for stat in rss_stats:
                 if rss_count >= remaining:
