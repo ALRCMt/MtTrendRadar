@@ -66,9 +66,6 @@ platforms:
   api_url: ""                            # 热榜数据 API 地址（留空使用默认地址）
                                         # 如果你自行部署了 newsnow，填入你的地址，如: https://your-domain.com/api/s
   sources:
-    - id: "baidu"
-      name: "百度热搜"
-      expected_domain: "baidu.com"
     - id: "thepaper"
       name: "澎湃新闻"
       expected_domain: "thepaper.cn"
@@ -99,8 +96,6 @@ platforms:
     - id: "ifeng"
       name: "凤凰网"
       expected_domain: "ifeng.com"
-    - id: "mktnews"
-      name: "MKT新闻"
 
     # ─────────────────────────────────────────────────
     # 财经投资类（市场动态/宏观/投资）
@@ -201,9 +196,6 @@ rss:
     - id: "theverge"
       name: "The Verge"
       url: "https://www.theverge.com/rss/index.xml"
-    - id: "ieee-spectrum"
-      name: "IEEE Spectrum"
-      url: "https://spectrum.ieee.org/rss/fulltext"
     - id: "newscientist"
       name: "New Scientist"
       url: "https://www.newscientist.com/feed/home/"
@@ -230,9 +222,6 @@ rss:
     - id: "bloomberg"
       name: "Bloomberg"
       url: "https://feeds.bloomberg.com/markets/news.rss"
-    - id: "ft-world"
-      name: "Financial Times"
-      url: "https://www.ft.com/world?format=rss"
 
     # ─────────────────────────────────────────────────
     # 科技前沿（深度技术/AI/科学）
