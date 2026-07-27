@@ -110,7 +110,7 @@ rss:
   freshness_filter:
     enabled: true                     # 是否启用新鲜度过滤（true=启用, false=关闭）
 
-    max_age_days:                    # 最大文章年龄（天）
+    max_age_days: 7                   # 最大文章年龄（天）
                                       # - 正整数：只推送 N 天内的文章
                                       # - 0：禁用过滤，推送所有文章
 
@@ -122,9 +122,9 @@ rss:
     # - id: "hacker-news"
     #   name: "Hacker News"
     #   url: "https://hnrss.org/frontpage"
-    - id: "gitHub-trending"
-      name: "GitHub Trending"
-      url: "https://mshibanern.github.io/GitHubTrendingRSS/daily/all.xml"
+    - id: "ruanyifeng"
+      name: "ruanyifeng"
+      url: "http://www.ruanyifeng.com/blog/atom.xml"
     - id: "bilibili-weekly"
       name: "BiliBili 周榜"
       url: "https://hub.slarker.me/bilibili/weekly"
@@ -134,7 +134,36 @@ rss:
     - id: "linuxdo"
       name: "Linux.do"
       url: "https://linux.do/latest.rss"
-
+    - id: "v2ex"
+      name: "V2EX"
+      url: "https://www.v2ex.com/index.xml"
+    - id: "2xnz"
+      name: "2x.nz"
+      url: "https://2x.nz/posts/rss.xml"
+    - id: "hacker-news"
+      name: "Hacker News"
+      url: "https://hnrss.org/frontpage"
+    - id: "techcrunch"
+      name: "TechCrunch"
+      url: "https://techcrunch.com/feed/"
+    - id: "arstechnica"
+      name: "Ars Technica"
+      url: "https://feeds.arstechnica.com/arstechnica/index"
+    - id: "theverge"
+      name: "The Verge"
+      url: "https://www.theverge.com/rss/index.xml"
+    - id: "ieee-spectrum"
+      name: "IEEE Spectrum"
+      url: "https://spectrum.ieee.org/rss/fulltext"
+    - id: "reuters-world"
+      name: "Reuters World"
+      url: "https://feeds.reuters.com/Reuters/worldNews"
+    - id: "newscientist"
+      name: "New Scientist"
+      url: "https://www.newscientist.com/feed/home/"
+    - id: "ALRCMt.private.atom"
+      name: "ALRCMt.private.atom"
+      url: "https://github.com/ALRCMt.private.atom?token=BBTORKAIMTZEPWADIQBZTF6IOQUR4"
 
     # 自定义源示例
     # - id: "custom-feed"
@@ -163,14 +192,14 @@ report:
 
   rank_threshold: 5                   # 排名高亮阈值（影响展示强调，不改变抓取范围）
 
-  max_news_per_keyword: 0             # 每个关键词/标签最大显示数量（0=不限制，仅影响展示裁剪）
+  max_news_per_keyword: 10             # 每个关键词/标签最大显示数量（0=不限制，仅影响展示裁剪）
 
 
 # ===============================================================
 # 4.5 筛选策略
 # ===============================================================
 filter:
-  method: "keyword"                     # 筛选方式（二选一）
+  method: "ai"                     # 筛选方式（二选一）
                                        # keyword = 关键词匹配，不调用 AI，不消耗 token，但规则固定
                                        #           词组定义在 config/frequency_words.txt
                                        # ai = AI 智能分类，更灵活但每次运行消耗 token
@@ -188,7 +217,7 @@ ai_filter:
   batch_size: 200                         # 每批发送给 AI 的标题数，超过此数量自动分批
   batch_interval: 2                       # 分批间隔（秒），避免触发 API 限流，0=不等待
 
-  min_score: 0.7                          # 推送最低分数阈值（0.0~1.0），值越高越严格
+  min_score: 0.75                          # 推送最低分数阈值（0.0~1.0），值越高越严格
                                           # 推荐 0.5~0.7 起步，0=不过滤
 
   # 兴趣描述文件（默认 config/ai_interests.txt，无需配置）
@@ -388,7 +417,7 @@ ai:
   temperature: 1.0                  # 采样温度 (0.0-2.0)
                                     # 注意：部分模型(如 gpt-5)可能要求必须为 1.0，否则会报错
   
-  max_tokens: 5000                  # 最大生成 token 数
+  max_tokens: 3000                  # 最大生成 token 数
                                     # 注意：如果 API 不支持此参数(报 HTTP 400)，请设为 0 以禁用发送
   # 高级选项
   num_retries: 1                    # 失败重试次数
