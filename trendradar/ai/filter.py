@@ -408,13 +408,29 @@ class AIFilter:
                     print(f"[{role}]\n{content}")
             print(f"[AI筛选][DEBUG] === Prompt 结束 (长度: {sum(len(m['content']) for m in messages)} 字符) ===")
 
-        try:
-            response = self.client.chat(messages)
+        max_empty_retries = 2
+        for attempt in range(max_empty_retries + 1):
+            try:
+                # 分类输出较多，增大 max_tokens 防止 JSON 被截断
+                response = self.client.chat(messages, max_tokens=8000)
 
-            return self._parse_classify_response(response, titles, tags)
-        except Exception as e:
-            print(f"[AI筛选] 分类请求失败: {type(e).__name__}: {e}")
-            return None
+                result = self._parse_classify_response(response, titles, tags)
+
+                # 空响应或无法提取 JSON → 重试
+                if not result and not self._extract_json(response):
+                    if attempt < max_empty_retries:
+                        print(f"[AI筛选] 分类返回空响应，正在重试 ({attempt+1}/{max_empty_retries})...")
+                        continue
+                    print(f"[AI筛选] 分类返回空响应，重试 {max_empty_retries} 次后仍失败")
+                    return None
+
+                return result
+            except Exception as e:
+                if attempt < max_empty_retries:
+                    print(f"[AI筛选] 分类请求失败: {type(e).__name__}: {e}，正在重试 ({attempt+1}/{max_empty_retries})...")
+                    continue
+                print(f"[AI筛选] 分类请求失败: {type(e).__name__}: {e}")
+                return None
 
     def _parse_classify_response(
         self,
