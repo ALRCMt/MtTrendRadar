@@ -101,34 +101,19 @@ platforms:
       expected_domain: "ifeng.com"
     - id: "mktnews"
       name: "MKT新闻"
-    - id: "kaopu"
-      name: "靠谱新闻"
 
     # ─────────────────────────────────────────────────
     # 财经投资类（市场动态/宏观/投资）
     # ─────────────────────────────────────────────────
-    - id: "wallstreetcn-hot"
-      name: "华尔街见闻 最热"
-      expected_domain: "wallstreetcn.com"
     - id: "wallstreetcn-quick"
       name: "华尔街见闻 快讯"
       expected_domain: "wallstreetcn.com"
     - id: "cls-hot"
       name: "财联社热门"
-    - id: "cls-telegraph"
-      name: "财联社 电报"
-    - id: "cls-depth"
-      name: "财联社 深度"
-    - id: "gelonghui"
-      name: "格隆汇"
     - id: "jin10"
       name: "金十数据"
     - id: "fastbull"
       name: "快讯通"
-    - id: "fastbull-express"
-      name: "法布财经 快讯"
-    - id: "fastbull-news"
-      name: "法布财经 头条"
 
     # ─────────────────────────────────────────────────
     # 社交/生活类（舆论热点/大众话题）
@@ -160,8 +145,6 @@ platforms:
     # ─────────────────────────────────────────────────
     # 其他（信息聚合/搜索工具）
     # ─────────────────────────────────────────────────
-    - id: "chongbuluo"
-      name: "虫部落"
 
 
 # ===============================================================
@@ -225,9 +208,6 @@ rss:
     - id: "ieee-spectrum"
       name: "IEEE Spectrum"
       url: "https://spectrum.ieee.org/rss/fulltext"
-    - id: "reuters-world"
-      name: "Reuters World"
-      url: "https://feeds.reuters.com/Reuters/worldNews"
     - id: "newscientist"
       name: "New Scientist"
       url: "https://www.newscientist.com/feed/home/"
@@ -277,12 +257,6 @@ rss:
     - id: "36kr"
       name: "36氪"
       url: "https://36kr.com/feed"
-    - id: "huxiu"
-      name: "虎嗅"
-      url: "https://www.huxiu.com/rss/0.xml"
-    - id: "wallstreetcn-rss"
-      name: "华尔街见闻"
-      url: "https://wallstreetcn.com/rss"
 
     # 自定义源示例
     # - id: "custom-feed"
@@ -382,14 +356,14 @@ display:
                                       # 注：热点词汇统计中的新增标记🆕不受此配置影响
 
     rss: true                         # RSS 订阅区域（true=显示并分析, false=隐藏并跳过分析）
-    standalone: false                 # 独立展示区：完整热榜/RSS，不受关键词过滤（true=显示, false=隐藏）
+    standalone: true                  # 独立展示区：完整热榜/RSS，不受关键词过滤（true=显示, false=隐藏）
     ai_analysis: true                 # AI 分析区域（true=显示, false=隐藏）
 
   # 独立展示区：将指定平台/RSS 完整展示，不受关键词过滤
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
-    platforms: ["zhihu", "wallstreetcn-hot"]     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
-    rss_feeds: []                                # RSS 源 ID 列表（如 ["hacker-news"]）
+    platforms: ["zaobao", "bilibili-hot-search"]     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
+    rss_feeds: ["ruanyifeng", "microcomputer", "2xnz"]           # RSS 源 ID 列表（如 ["hacker-news"]）
     max_items: 20                                # 每个源最多展示条数（0=不限制）
 
 
