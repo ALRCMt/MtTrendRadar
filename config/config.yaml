@@ -483,7 +483,7 @@ ai_translation:
 # 11. 高级设置（一般无需修改）
 # ===============================================================
 advanced:
-  debug: false                        # 调试模式（true=开启详细日志, false=正常模式）
+  debug: true                         # 调试模式（true=开启详细日志, false=正常模式）
 
   # 版本检查
   version_check_url: "https://raw.githubusercontent.com/sansan0/TrendRadar/refs/heads/master/version"
