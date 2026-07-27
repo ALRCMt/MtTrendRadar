@@ -167,7 +167,6 @@ jobs:
           S3_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
           S3_REGION: ${{ secrets.S3_REGION }}
           GITHUB_ACTIONS: true
-          SCHEDULE_PRESET: ${{ github.event_name == 'workflow_dispatch' && 'always_on' || '' }}
         run: uv run python -m trendradar
 
       # --------------------------------------------------------------------------------
