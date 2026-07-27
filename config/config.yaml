@@ -196,13 +196,12 @@ rss:
     - id: "theverge"
       name: "The Verge"
       url: "https://www.theverge.com/rss/index.xml"
-    - id: "newscientist"
-      name: "New Scientist"
-      url: "https://www.newscientist.com/feed/home/"
     - id: "ALRCMt.private.atom"
       name: "ALRCMt.private.atom"
       url: "https://github.com/ALRCMt.private.atom?token=BBTORKAIMTZEPWADIQBZTF6IOQUR4"
-
+    - id: "AnimeNewsNetwork"
+      name: "Anime News Network"
+      url: "https://www.animenewsnetwork.com/news/rss.xml"
     # ─────────────────────────────────────────────────
     # 国际权威通讯社/媒体（全球视野）
     # ─────────────────────────────────────────────────

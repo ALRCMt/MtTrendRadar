@@ -1809,16 +1809,32 @@ def render_html_content(
         if total_count == 0:
             return ""
 
+        # 生成 RSS tab 栏
+        rss_tab_bar = ""
+        if len(stats) >= 2:
+            rss_tab_bar = f"""
+                    <div class="tab-bar rss-tab-bar">"""
+            for tab_i, tab_stat in enumerate(stats):
+                escaped_tab_word = html_escape(tab_stat.get("word", ""))
+                tab_count = len(tab_stat.get("titles", []))
+                active = " active" if tab_i == 0 else ""
+                rss_tab_bar += f"""
+                        <button class="tab-btn{active}" data-rss-tab="{tab_i}">{escaped_tab_word}<span class="tab-count">{tab_count}</span></button>"""
+            rss_tab_bar += f"""
+                        <button class="tab-btn" data-rss-tab="all">全部<span class="tab-count">{total_count}</span></button>
+                    </div>"""
+
         rss_html = f"""
                 <div class="rss-section">
                     <div class="rss-section-header">
                         <div class="rss-section-title">{title}</div>
                         <div class="rss-section-count">{total_count} 条</div>
                     </div>
+                    {rss_tab_bar}
                     <div class="rss-feeds-grid">"""
 
         # 按关键词分组渲染（与热榜格式一致）
-        for stat in stats:
+        for tab_i, stat in enumerate(stats):
             keyword = stat.get("word", "")
             titles = stat.get("titles", [])
             if not titles:
@@ -1827,7 +1843,7 @@ def render_html_content(
             keyword_count = len(titles)
 
             rss_html += f"""
-                    <div class="feed-group">
+                    <div class="feed-group" data-rss-tab="{tab_i}">
                         <div class="feed-header">
                             <div class="feed-name">{html_escape(keyword)}</div>
                             <div class="feed-count">{keyword_count} 条</div>
@@ -2234,6 +2250,7 @@ def render_html_content(
                 initTabVisibility();
                 initCollapseVisibility();
                 initStandaloneTabVisibility();
+                initRssTabVisibility();
             }
 
             function toggleDarkMode() {
@@ -2464,12 +2481,58 @@ def render_html_content(
 
                 // 初始状态
                 initStandaloneTabVisibility();
+                initRssTabVisibility();
             }
 
             function initStandaloneTabVisibility() {
                 var tabBar = document.querySelector('.standalone-tab-bar');
                 if (!tabBar) return;
                 var groups = document.querySelectorAll('.standalone-group[data-standalone-tab]');
+                var isWide = document.body.classList.contains('wide-mode');
+                if (!isWide || groups.length <= 1) {
+                    tabBar.classList.add('tab-hidden');
+                    groups.forEach(function(g) { g.style.display = ''; });
+                } else {
+                    tabBar.classList.remove('tab-hidden');
+                    var activeBtn = tabBar.querySelector('.tab-btn.active');
+                    if (activeBtn) activeBtn.click();
+                    else { var first = tabBar.querySelector('.tab-btn'); if (first) first.click(); }
+                }
+            }
+
+            // RSS Tab 切换
+            function initRssTabs() {
+                var tabBar = document.querySelector('.rss-tab-bar');
+                if (!tabBar) return;
+                var groups = document.querySelectorAll('.feed-group[data-rss-tab]');
+                var btns = tabBar.querySelectorAll('.tab-btn[data-rss-tab]');
+                initTabScroll(tabBar);
+
+                function activateRssTab(val) {
+                    btns.forEach(function(b) {
+                        var bVal = b.getAttribute('data-rss-tab');
+                        b.classList.toggle('active', bVal === String(val));
+                    });
+                    groups.forEach(function(g) {
+                        var gVal = g.getAttribute('data-rss-tab');
+                        g.style.display = (val === 'all' || gVal === String(val)) ? '' : 'none';
+                    });
+                }
+
+                btns.forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        activateRssTab(btn.getAttribute('data-rss-tab'));
+                    });
+                });
+
+                // 初始状态
+                initRssTabVisibility();
+            }
+
+            function initRssTabVisibility() {
+                var tabBar = document.querySelector('.rss-tab-bar');
+                if (!tabBar) return;
+                var groups = document.querySelectorAll('.feed-group[data-rss-tab]');
                 var isWide = document.body.classList.contains('wide-mode');
                 if (!isWide || groups.length <= 1) {
                     tabBar.classList.add('tab-hidden');
@@ -2503,7 +2566,14 @@ def render_html_content(
                         g.style.display = '';
                     }
                 });
-                document.querySelectorAll('.tab-bar-wrapper, .standalone-tab-bar, .search-bar, .fab-bar, .toggle-wide-btn').forEach(function(el) {
+                state.hiddenRssGroups = [];
+                document.querySelectorAll('.feed-group[data-rss-tab]').forEach(function(g, i) {
+                    if (g.style.display === 'none') {
+                        state.hiddenRssGroups.push(i);
+                        g.style.display = '';
+                    }
+                });
+                document.querySelectorAll('.tab-bar-wrapper, .standalone-tab-bar, .rss-tab-bar, .search-bar, .fab-bar, .toggle-wide-btn').forEach(function(el) {
                     el.dataset.prevDisplay = el.style.display || '';
                     el.style.display = 'none';
                 });
@@ -2528,7 +2598,13 @@ def render_html_content(
                         if (standaloneGroups[i]) standaloneGroups[i].style.display = 'none';
                     });
                 }
-                document.querySelectorAll('.tab-bar-wrapper, .standalone-tab-bar, .search-bar, .fab-bar, .toggle-wide-btn').forEach(function(el) {
+                var rssGroups = document.querySelectorAll('.feed-group[data-rss-tab]');
+                if (state.hiddenRssGroups) {
+                    state.hiddenRssGroups.forEach(function(i) {
+                        if (rssGroups[i]) rssGroups[i].style.display = 'none';
+                    });
+                }
+                document.querySelectorAll('.tab-bar-wrapper, .standalone-tab-bar, .rss-tab-bar, .search-bar, .fab-bar, .toggle-wide-btn').forEach(function(el) {
                     el.style.display = el.dataset.prevDisplay || '';
                     delete el.dataset.prevDisplay;
                 });
@@ -2539,6 +2615,7 @@ def render_html_content(
                 document.querySelectorAll('.header-watermark').forEach(function(el) { el.style.display = ''; });
                 initTabVisibility();
                 initCollapseVisibility();
+                initRssTabVisibility();
                 initStandaloneTabVisibility();
                 var fabBar = document.querySelector('.fab-bar');
                 if (fabBar && window.scrollY > 300) fabBar.classList.add('visible');
@@ -3112,6 +3189,7 @@ def render_html_content(
                 initBackToTop();
                 initCollapse();
                 initStandaloneTabs();
+                initRssTabs();
 
                 // 键盘快捷键
                 document.addEventListener('keydown', function(e) {
