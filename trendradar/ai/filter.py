@@ -143,40 +143,59 @@ class AIFilter:
                 print(f"[{m['role']}]\n{m['content']}")
             print(f"[AI筛选][DEBUG] === Prompt 结束 ===")
 
-        try:
-            response = self.client.chat(messages)
+        max_empty_retries = 2  # 空响应额外重试次数（API成功但返回空内容）
+        for attempt in range(max_empty_retries + 1):
+            try:
+                response = self.client.chat(messages)
 
-            if self.debug:
-                print(f"\n[AI筛选][DEBUG] === 标签提取 AI 原始响应 ===")
-                # 尝试格式化 JSON 便于阅读
-                self._print_formatted_json(response)
-                print(f"[AI筛选][DEBUG] === 响应结束 ===")
+                if self.debug:
+                    print(f"\n[AI筛选][DEBUG] === 标签提取 AI 原始响应 ===")
+                    self._print_formatted_json(response)
+                    print(f"[AI筛选][DEBUG] === 响应结束 ===")
 
-            tags = self._parse_tags_response(response)
-            print(f"[AI筛选] 提取到 {len(tags)} 个标签")
-            for t in tags:
-                print(f"   {t['tag']}: {t.get('description', '')}")
+                tags = self._parse_tags_response(response)
 
-            if self.debug:
-                json_str = self._extract_json(response)
-                if not json_str:
-                    print(f"[AI筛选][DEBUG] 无法从响应中提取 JSON")
-                else:
-                    raw_data = json.loads(json_str)
-                    raw_tags = raw_data.get("tags", [])
-                    skipped = len(raw_tags) - len(tags)
-                    if skipped > 0:
-                        print(f"[AI筛选][DEBUG] 原始标签 {len(raw_tags)} 个，有效 {len(tags)} 个，跳过 {skipped} 个（缺少 tag 字段或格式无效）")
+                # 空响应或提取不到 JSON → 重试
+                if not tags and not self._extract_json(response):
+                    if attempt < max_empty_retries:
+                        print(f"[AI筛选] 标签提取返回空响应，正在重试 ({attempt+1}/{max_empty_retries})...")
+                        continue
+                    print(f"[AI筛选] 标签提取返回空响应，重试 {max_empty_retries} 次后仍失败")
+                    print(f"[AI筛选] 提取到 0 个标签")
+                    if self.debug:
+                        print(f"[AI筛选][DEBUG] 无法从响应中提取 JSON")
+                    return []
 
-            return tags
-        except json.JSONDecodeError as e:
-            print(f"[AI筛选] 标签提取失败: JSON 解析错误: {e}")
-            if self.debug:
-                print(f"[AI筛选][DEBUG] 尝试解析的 JSON 内容: {self._extract_json(response) if response else '(空响应)'}")
-            return []
-        except Exception as e:
-            print(f"[AI筛选] 标签提取失败: {type(e).__name__}: {e}")
-            return []
+                print(f"[AI筛选] 提取到 {len(tags)} 个标签")
+                for t in tags:
+                    print(f"   {t['tag']}: {t.get('description', '')}")
+
+                if self.debug:
+                    json_str = self._extract_json(response)
+                    if not json_str:
+                        print(f"[AI筛选][DEBUG] 无法从响应中提取 JSON")
+                    else:
+                        raw_data = json.loads(json_str)
+                        raw_tags = raw_data.get("tags", [])
+                        skipped = len(raw_tags) - len(tags)
+                        if skipped > 0:
+                            print(f"[AI筛选][DEBUG] 原始标签 {len(raw_tags)} 个，有效 {len(tags)} 个，跳过 {skipped} 个（缺少 tag 字段或格式无效）")
+
+                return tags
+            except json.JSONDecodeError as e:
+                if attempt < max_empty_retries:
+                    print(f"[AI筛选] 标签提取 JSON 解析错误: {e}，正在重试 ({attempt+1}/{max_empty_retries})...")
+                    continue
+                print(f"[AI筛选] 标签提取失败: JSON 解析错误: {e}")
+                if self.debug:
+                    print(f"[AI筛选][DEBUG] 尝试解析的 JSON 内容: {self._extract_json(response) if response else '(空响应)'}")
+                return []
+            except Exception as e:
+                if attempt < max_empty_retries:
+                    print(f"[AI筛选] 标签提取失败: {type(e).__name__}: {e}，正在重试 ({attempt+1}/{max_empty_retries})...")
+                    continue
+                print(f"[AI筛选] 标签提取失败: {type(e).__name__}: {e}")
+                return []
 
     def update_tags(self, old_tags: List[Dict], interests_content: str) -> Optional[Dict]:
         """
@@ -220,28 +239,42 @@ class AIFilter:
                 print(f"[{m['role']}]\n{m['content']}")
             print(f"[AI筛选][DEBUG] === Prompt 结束 ===")
 
-        try:
-            response = self.client.chat(messages)
+        max_empty_retries = 2
+        for attempt in range(max_empty_retries + 1):
+            try:
+                response = self.client.chat(messages)
 
-            if self.debug:
-                print(f"\n[AI筛选][DEBUG] === 标签更新 AI 原始响应 ===")
-                self._print_formatted_json(response)
-                print(f"[AI筛选][DEBUG] === 响应结束 ===")
+                if self.debug:
+                    print(f"\n[AI筛选][DEBUG] === 标签更新 AI 原始响应 ===")
+                    self._print_formatted_json(response)
+                    print(f"[AI筛选][DEBUG] === 响应结束 ===")
 
-            result = self._parse_update_tags_response(response)
-            if result is None:
+                result = self._parse_update_tags_response(response)
+
+                # 空响应 → 重试
+                if result is None and not self._extract_json(response):
+                    if attempt < max_empty_retries:
+                        print(f"[AI筛选] 标签更新返回空响应，正在重试 ({attempt+1}/{max_empty_retries})...")
+                        continue
+                    print(f"[AI筛选] 标签更新返回空响应，重试 {max_empty_retries} 次后仍失败")
+                    return None
+
+                if result is None:
+                    return None
+
+                keep_count = len(result.get("keep", []))
+                add_count = len(result.get("add", []))
+                remove_count = len(result.get("remove", []))
+                ratio = result.get("change_ratio", 0)
+                print(f"[AI筛选] AI 标签更新方案: 保留 {keep_count}, 新增 {add_count}, 移除 {remove_count}, change_ratio={ratio:.2f}")
+
+                return result
+            except Exception as e:
+                if attempt < max_empty_retries:
+                    print(f"[AI筛选] 标签更新失败: {type(e).__name__}: {e}，正在重试 ({attempt+1}/{max_empty_retries})...")
+                    continue
+                print(f"[AI筛选] 标签更新失败: {type(e).__name__}: {e}")
                 return None
-
-            keep_count = len(result.get("keep", []))
-            add_count = len(result.get("add", []))
-            remove_count = len(result.get("remove", []))
-            ratio = result.get("change_ratio", 0)
-            print(f"[AI筛选] AI 标签更新方案: 保留 {keep_count}, 新增 {add_count}, 移除 {remove_count}, change_ratio={ratio:.2f}")
-
-            return result
-        except Exception as e:
-            print(f"[AI筛选] 标签更新失败: {type(e).__name__}: {e}")
-            return None
 
     def _parse_update_tags_response(self, response: str) -> Optional[Dict]:
         """解析标签更新的 AI 响应"""
