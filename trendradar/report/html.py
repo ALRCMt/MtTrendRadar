@@ -942,12 +942,12 @@ def render_html_content(
             body.wide-mode .tab-bar-wrapper.tab-hidden { display: none; }
 
             /* 独立展示区和 RSS 区的 Tab 栏 — 与平台区一致，竖屏隐藏、宽屏显示 */
-            .tab-bar.standalone-tab-bar,
-            .tab-bar.rss-tab-bar { display: none; }
-            body.wide-mode .tab-bar.standalone-tab-bar,
-            body.wide-mode .tab-bar.rss-tab-bar { display: flex; }
-            body.wide-mode .tab-bar.standalone-tab-bar.tab-hidden,
-            body.wide-mode .tab-bar.rss-tab-bar.tab-hidden { display: none; }
+            .standalone-tab-bar-wrapper,
+            .rss-tab-bar-wrapper { display: none; position: relative; align-items: stretch; margin-bottom: 20px; }
+            body.wide-mode .standalone-tab-bar-wrapper,
+            body.wide-mode .rss-tab-bar-wrapper { display: flex; }
+            body.wide-mode .standalone-tab-bar-wrapper.tab-hidden,
+            body.wide-mode .rss-tab-bar-wrapper.tab-hidden { display: none; }
 
             .tab-bar {
                 flex: 1;
@@ -1821,6 +1821,7 @@ def render_html_content(
         rss_tab_bar = ""
         if len(stats) >= 2:
             rss_tab_bar = f"""
+                    <div class="tab-bar-wrapper rss-tab-bar-wrapper">
                     <div class="tab-bar rss-tab-bar">"""
             for tab_i, tab_stat in enumerate(stats):
                 escaped_tab_word = html_escape(tab_stat.get("word", ""))
@@ -1830,6 +1831,7 @@ def render_html_content(
                         <button class="tab-btn{active}" data-rss-tab="{tab_i}">{escaped_tab_word}<span class="tab-count">{tab_count}</span></button>"""
             rss_tab_bar += f"""
                         <button class="tab-btn" data-rss-tab="all">全部<span class="tab-count">{total_count}</span></button>
+                    </div>
                     </div>"""
 
         rss_html = f"""
@@ -1981,6 +1983,7 @@ def render_html_content(
         # 生成 tab 栏（2+ 分组时）
         if len(all_groups) >= 2:
             standalone_html += """
+                    <div class="tab-bar-wrapper standalone-tab-bar-wrapper">
                     <div class="tab-bar standalone-tab-bar">"""
             for idx, g in enumerate(all_groups):
                 active = ' active' if idx == 0 else ''
@@ -1988,6 +1991,7 @@ def render_html_content(
                         <button class="tab-btn{active}" data-standalone-tab="{idx}">{html_escape(g["name"])}<span class="tab-count">{g["count"]}</span></button>"""
             standalone_html += f"""
                         <button class="tab-btn" data-standalone-tab="all">全部<span class="tab-count">{total_count}</span></button>
+                    </div>
                     </div>"""
 
         standalone_html += """
@@ -2495,13 +2499,15 @@ def render_html_content(
             function initStandaloneTabVisibility() {
                 var tabBar = document.querySelector('.standalone-tab-bar');
                 if (!tabBar) return;
+                var wrapper = tabBar.closest('.tab-bar-wrapper');
+                if (!wrapper) return;
                 var groups = document.querySelectorAll('.standalone-group[data-standalone-tab]');
                 var isWide = document.body.classList.contains('wide-mode');
                 if (!isWide || groups.length <= 1) {
-                    tabBar.classList.add('tab-hidden');
+                    wrapper.classList.add('tab-hidden');
                     groups.forEach(function(g) { g.style.display = ''; });
                 } else {
-                    tabBar.classList.remove('tab-hidden');
+                    wrapper.classList.remove('tab-hidden');
                     var activeBtn = tabBar.querySelector('.tab-btn.active');
                     if (activeBtn) activeBtn.click();
                     else { var first = tabBar.querySelector('.tab-btn'); if (first) first.click(); }
@@ -2540,13 +2546,15 @@ def render_html_content(
             function initRssTabVisibility() {
                 var tabBar = document.querySelector('.rss-tab-bar');
                 if (!tabBar) return;
+                var wrapper = tabBar.closest('.tab-bar-wrapper');
+                if (!wrapper) return;
                 var groups = document.querySelectorAll('.feed-group[data-rss-tab]');
                 var isWide = document.body.classList.contains('wide-mode');
                 if (!isWide || groups.length <= 1) {
-                    tabBar.classList.add('tab-hidden');
+                    wrapper.classList.add('tab-hidden');
                     groups.forEach(function(g) { g.style.display = ''; });
                 } else {
-                    tabBar.classList.remove('tab-hidden');
+                    wrapper.classList.remove('tab-hidden');
                     var activeBtn = tabBar.querySelector('.tab-btn.active');
                     if (activeBtn) activeBtn.click();
                     else { var first = tabBar.querySelector('.tab-btn'); if (first) first.click(); }
