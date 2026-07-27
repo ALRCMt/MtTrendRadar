@@ -2133,7 +2133,9 @@ def render_html_content(
 
     # 生成 RSS 统计和新增 HTML
     rss_stats_html = render_rss_stats_html(rss_items, "RSS 订阅更新") if rss_items else ""
-    rss_new_html = render_rss_stats_html(rss_new_items, "RSS 新增更新") if rss_new_items else ""
+    # RSS 新增区块受 show_new_section 控制（关联配置 display.regions.new_items）：
+    # new_items=false 时整体隐藏，避免与主 RSS 区重复（首次抓取时所有条目皆为"新增"）
+    rss_new_html = render_rss_stats_html(rss_new_items, "RSS 新增更新") if (show_new_section and rss_new_items) else ""
 
     # 生成独立展示区 HTML
     standalone_html = render_standalone_html(standalone_data)
