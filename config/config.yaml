@@ -112,8 +112,6 @@ platforms:
       name: "财联社热门"
     - id: "jin10"
       name: "金十数据"
-    - id: "fastbull"
-      name: "快讯通"
 
     # ─────────────────────────────────────────────────
     # 社交/生活类（舆论热点/大众话题）
@@ -139,8 +137,6 @@ platforms:
       name: "少数派"
     - id: "producthunt"
       name: "ProductHunt"
-    - id: "tencent-hot"
-      name: "腾讯新闻 综合早报"
 
     # ─────────────────────────────────────────────────
     # 其他（信息聚合/搜索工具）
@@ -172,9 +168,9 @@ rss:
   # - 正整数：覆盖全局设置，只推送此天数内的文章
   # - 0：禁用此频道的新鲜度过滤，推送所有文章
   feeds:
-    # - id: "hacker-news"
-    #   name: "Hacker News"
-    #   url: "https://hnrss.org/frontpage"
+    - id: "gcores"
+      name: "gcores"
+      url: "https://gcores.com/rss"
     - id: "ruanyifeng"
       name: "ruanyifeng"
       url: "http://www.ruanyifeng.com/blog/atom.xml"
