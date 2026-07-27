@@ -269,7 +269,7 @@ report:
 
   rank_threshold: 5                   # 排名高亮阈值（影响展示强调，不改变抓取范围）
 
-  max_news_per_keyword: 10             # 每个关键词/标签最大显示数量（0=不限制，仅影响展示裁剪）
+  max_news_per_keyword: 20             # 每个关键词/标签最大显示数量（0=不限制，仅影响展示裁剪）
 
 
 # ===============================================================
@@ -348,7 +348,7 @@ display:
   standalone:
     platforms: ["zaobao", "bilibili-hot-search"]     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
     rss_feeds: ["ruanyifeng", "microcomputer", "2xnz"]           # RSS 源 ID 列表（如 ["hacker-news"]）
-    max_items: 20                                # 每个源最多展示条数（0=不限制）
+    max_items: 15                                # 每个源最多展示条数（0=不限制）
 
 
 # ===============================================================

@@ -941,6 +941,14 @@ def render_html_content(
             body.wide-mode .tab-bar-wrapper { display: flex; }
             body.wide-mode .tab-bar-wrapper.tab-hidden { display: none; }
 
+            /* 独立展示区和 RSS 区的 Tab 栏 — 与平台区一致，竖屏隐藏、宽屏显示 */
+            .tab-bar.standalone-tab-bar,
+            .tab-bar.rss-tab-bar { display: none; }
+            body.wide-mode .tab-bar.standalone-tab-bar,
+            body.wide-mode .tab-bar.rss-tab-bar { display: flex; }
+            body.wide-mode .tab-bar.standalone-tab-bar.tab-hidden,
+            body.wide-mode .tab-bar.rss-tab-bar.tab-hidden { display: none; }
+
             .tab-bar {
                 flex: 1;
                 min-width: 0;

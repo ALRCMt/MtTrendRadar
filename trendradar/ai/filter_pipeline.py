@@ -6,6 +6,8 @@ AI 筛选流水线
 标签管理 → 待分类新闻收集 → 批量 AI 分类 → 结果保存 → 报告数据转换
 """
 
+import difflib
+import re
 from typing import Any, Callable, Dict, List, Optional
 
 from trendradar.ai.filter import AIFilter, AIFilterResult
@@ -19,6 +21,56 @@ from trendradar.utils.time import (
 
 class AIFilterPipeline:
     """AI 筛选流水线，编排标签提取、批量分类、结果存储的完整流程"""
+
+    @staticmethod
+    def _normalize_title(title: str) -> str:
+        """规范化标题用于去重比较"""
+        t = title.lower()
+        t = re.sub(r'[^\w\u4e00-\u9fff]', '', t)
+        return t.strip()
+
+    @staticmethod
+    def _deduplicate_titles(entries: List[Dict]) -> List[Dict]:
+        """对标题列表做模糊去重，相似标题只保留最长/最详细的一条"""
+        if not entries:
+            return entries
+
+        # 规范化并分组
+        groups = []  # [(norm, entry), ...]
+        for e in entries:
+            norm = AIFilterPipeline._normalize_title(e.get("title", ""))
+            if norm:
+                groups.append((norm, e))
+
+        # 用 difflib 做模糊去重
+        kept = []
+        used = [False] * len(groups)
+        for i in range(len(groups)):
+            if used[i]:
+                continue
+            cluster = [i]
+            norm_i, _ = groups[i]
+            for j in range(i + 1, len(groups)):
+                if used[j]:
+                    continue
+                norm_j, _ = groups[j]
+                # 短文本直接用包含关系判断
+                if norm_i in norm_j or norm_j in norm_i:
+                    cluster.append(j)
+                elif len(norm_i) > 5 and len(norm_j) > 5:
+                    ratio = difflib.SequenceMatcher(None, norm_i, norm_j).ratio()
+                    if ratio > 0.85:
+                        cluster.append(j)
+            if len(cluster) == 1:
+                kept.append(groups[i][1])
+            else:
+                # 从相似组中保留标题最长的
+                best = max(cluster, key=lambda idx: len(groups[idx][1].get("title", "")))
+                kept.append(groups[best][1])
+            for idx in cluster:
+                used[idx] = True
+
+        return kept
 
     def __init__(
         self,
@@ -576,6 +628,7 @@ class AIFilterPipeline:
                     hotlist_titles.append(title_entry)
 
             if hotlist_titles:
+                hotlist_titles = self._deduplicate_titles(hotlist_titles)
                 if self._max_news > 0:
                     hotlist_titles = hotlist_titles[:self._max_news]
                 hotlist_stats.append({
@@ -586,6 +639,7 @@ class AIFilterPipeline:
                 })
 
             if rss_titles:
+                rss_titles = self._deduplicate_titles(rss_titles)
                 if self._max_news > 0:
                     rss_titles = rss_titles[:self._max_news]
                 rss_stats.append({
