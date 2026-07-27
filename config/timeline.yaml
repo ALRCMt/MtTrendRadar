@@ -126,7 +126,7 @@ presets:
       analyze: true              # 不做 AI 分析（节省 API 费用）
       ai_mode: "current"           # AI 分析当前榜单
       push: true                   # 有新内容就推送
-      report_mode: "incremental"   # 只推送新增内容，避免重复
+      report_mode: "current"   # 推送内容，重复
       once:                        # 限制每个时间段内只执行一次
         analyze: false             #   不限制分析次数
         push: false                #   不限制推送次数
