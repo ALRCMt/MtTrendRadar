@@ -100,6 +100,20 @@ class AIFilterPipeline:
         self._max_news = config.get("MAX_NEWS_PER_KEYWORD", 0)
 
         self._feed_max_age_map = self._build_feed_max_age_map()
+        self._feed_max_items_map = self._build_feed_max_items_map()
+
+    def _build_feed_max_items_map(self) -> Dict[str, int]:
+        """构建 feed_id → max_items 映射"""
+        result = {}
+        for feed_cfg in self._rss_feeds:
+            feed_id = feed_cfg.get("id", "")
+            max_items = feed_cfg.get("max_items")
+            if max_items is not None:
+                try:
+                    result[feed_id] = int(max_items)
+                except (ValueError, TypeError):
+                    pass
+        return result
 
     def _build_feed_max_age_map(self) -> Dict[str, int]:
         result = {}
@@ -552,6 +566,8 @@ class AIFilterPipeline:
                 print(f"[AI筛选] current 模式：最新时间 {latest_time}，过滤已下榜新闻")
 
         filtered_count = 0
+        feed_item_counts: Dict[str, int] = {}  # 追踪每个 feed 已保留的条数
+        feed_max_items_filtered = 0
         for tag_data in ai_filter_result.tags:
             tag_name = tag_data.get("tag", "")
             items = tag_data.get("items", [])
@@ -573,6 +589,17 @@ class AIFilterPipeline:
                     score = item.get("relevance_score", 0)
                     if score < min_score:
                         continue
+
+                # 每个 feed 的条数上限
+                if self._feed_max_items_map and source_type == "rss":
+                    feed_id = item.get("source_id", "")
+                    max_items = self._feed_max_items_map.get(feed_id)
+                    if max_items is not None:
+                        current_count = feed_item_counts.get(feed_id, 0)
+                        if current_count >= max_items:
+                            feed_max_items_filtered += 1
+                            continue
+                        feed_item_counts[feed_id] = current_count + 1
 
                 first_time = item.get("first_time", "")
                 last_time = item.get("last_time", "")
@@ -660,6 +687,9 @@ class AIFilterPipeline:
         if mode == "current" and filtered_count > 0:
             total_kept = sum(s["count"] for s in hotlist_stats)
             print(f"[AI筛选] current 模式：过滤 {filtered_count} 条已下榜新闻，保留 {total_kept} 条当前在榜")
+
+        if feed_max_items_filtered > 0:
+            print(f"[AI筛选] 按源条数上限过滤：共过滤 {feed_max_items_filtered} 条")
 
         if min_score > 0:
             hotlist_kept = sum(s["count"] for s in hotlist_stats)

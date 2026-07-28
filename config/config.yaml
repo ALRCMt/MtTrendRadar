@@ -198,7 +198,12 @@ rss:
     - id: "yhp"
       name: "阳和平说事儿"
       url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/605727461/hideGoods=1"
-
+    - id: "xz"
+      name: "冷场的匣子"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/33592703/hideGoods=1"
+    - id: "xkrb"
+      name: "芝士华莱士"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/22697887/hideGoods=1"
     - id: "right"
       name: "恩山无线论坛"
       url: "https://hub.slarker.me/right/forum"
@@ -228,6 +233,7 @@ rss:
     - id: "AnimeNewsNetwork"
       name: "Anime News Network"
       url: "https://www.animenewsnetwork.com/news/rss.xml"
+      max_items: 9
     # ─────────────────────────────────────────────────
     # 国际权威通讯社/媒体（全球视野）
     # ─────────────────────────────────────────────────
@@ -291,7 +297,7 @@ report:
 
   rank_threshold: 5                   # 排名高亮阈值（影响展示强调，不改变抓取范围）
 
-  max_news_per_keyword: 24             # 每个关键词/标签最大显示数量（0=不限制，仅影响展示裁剪）
+  max_news_per_keyword: 20             # 每个关键词/标签最大显示数量（0=不限制，仅影响展示裁剪）
 
 
 # ===============================================================
@@ -369,7 +375,7 @@ display:
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
     platforms: []     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
-    rss_feeds: ["bilibili-pop", "ruanyifeng", "microcomputer", "2xnz", "ark","right", "xuanli", "fb", "zbh", "yhp", "unclechen", "Github-trending-weekly"]           # RSS 源 ID 列表（如 ["hacker-news"]）
+    rss_feeds: ["bilibili-pop", "xz", "ruanyifeng", "microcomputer", "2xnz", "ark","right", "xuanli", "fb", "zbh", "yhp", "unclechen", "xkrb"]           # RSS 源 ID 列表（如 ["hacker-news"]）
     max_items: 12                                # 每个源最多展示条数（0=不限制）
 
 
