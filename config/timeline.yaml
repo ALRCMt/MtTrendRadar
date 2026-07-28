@@ -456,22 +456,13 @@ custom:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   periods:
 
-    nightly_collection:
-      name: "全天采集"
-      start: "00:00"
-      end: "23:59"
-      collect: true                # 全时段持续采集数据
-      analyze: false               # 默认不做 AI 分析
-      push: false                  # 默认不推送
-      report_mode: "daily"       # 仅在指定时段分析/推送时使用
-
     evening_analysis:
       name: "晚间分析"
-      start: "20:00"
-      end: "20:30"
+      start: "19:30"
+      end: "20:00"
       analyze: true                # 晚上 8 点进行汇总分析
       ai_mode: "daily"           # AI 分析全天内容
-      push: false                  # 仅分析，不推送
+      push: true                   #  改为推送，每晚推送当天汇总
       report_mode: "daily"       # 当日全部新闻汇总
       once:
         analyze: true              # 本时间段内只分析一次
