@@ -169,10 +169,7 @@ rss:
       url: "http://www.ruanyifeng.com/blog/atom.xml"
     - id: "bilibili-pop"
       name: "bilibili综合热门"
-      url: "https://hub.slarker.me/bilibili/popular/all"
-    - id: "Github-trending-weekly"
-      name: "Github每周趋势"
-      url: "https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/popular/all"
 
     # ─────────────────────────────────────────────────
 
