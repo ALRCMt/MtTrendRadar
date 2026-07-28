@@ -164,10 +164,10 @@ rss:
   # - 0：禁用此频道的新鲜度过滤，推送所有文章
   feeds:
     - id: "gcores"
-      name: "gcores"
+      name: "机核"
       url: "https://gcores.com/rss"
     - id: "ruanyifeng"
-      name: "ruanyifeng"
+      name: "科技爱好者周刊"
       url: "http://www.ruanyifeng.com/blog/atom.xml"
     - id: "bilibili-weekly"
       name: "BiliBili 周榜"
