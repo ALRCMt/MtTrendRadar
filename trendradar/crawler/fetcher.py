@@ -86,7 +86,7 @@ class DataFetcher:
     def fetch_data(
         self,
         id_info: Union[str, Tuple[str, str]],
-        max_retries: int = 2,
+        max_retries: int = 4,
         min_retry_wait: int = 3,
         max_retry_wait: int = 5,
     ) -> Tuple[Optional[str], str, str]:

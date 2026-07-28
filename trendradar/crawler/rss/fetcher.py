@@ -97,7 +97,7 @@ class RSSFetcher:
         """
         try:
             # 403 重试：部分站点（如 linux.do）偶尔会临时封禁，重试可缓解
-            max_retries = 2
+            max_retries = 4
             response = None
             for attempt in range(max_retries + 1):
                 response = self.session.get(feed.url, timeout=self.timeout)
