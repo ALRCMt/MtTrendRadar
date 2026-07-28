@@ -70,7 +70,7 @@ platforms:
       name: "澎湃新闻"
       expected_domain: "thepaper.cn"
     - id: "bilibili-hot-search"
-      name: "bilibili 热搜"
+      name: "bilibili热搜"
       expected_domain: "bilibili.com"
     - id: "tieba"
       name: "贴吧"
@@ -130,8 +130,6 @@ platforms:
       name: "远景论坛"
     - id: "sspai"
       name: "少数派"
-    - id: "producthunt"
-      name: "ProductHunt"
 
     # ─────────────────────────────────────────────────
     # 其他（信息聚合/搜索工具）
@@ -169,9 +167,46 @@ rss:
     - id: "ruanyifeng"
       name: "科技爱好者周刊"
       url: "http://www.ruanyifeng.com/blog/atom.xml"
-    - id: "bilibili-weekly"
-      name: "BiliBili 周榜"
-      url: "https://hub.slarker.me/bilibili/weekly"
+    - id: "bilibili-pop"
+      name: "bilibili综合热门"
+      url: "https://hub.slarker.me/bilibili/popular/all"
+    - id: "Github-trending-weekly"
+      name: "Github每周趋势"
+      url: "https://mshibanami.github.io/GitHubTrendingRSS/weekly/all.xml"
+
+    # ─────────────────────────────────────────────────
+
+    # ─────────────────────────────────────────────────
+    - id: "xuanli"
+      name: "玄离199"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/67079745/hideGoods=1"
+    - id: "SciNews-quick"
+      name: "科学快报"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/23791195/hideGoods=1"
+    - id: "unclechen"
+      name: "网络小白_Uncle城"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/37858284/hideGoods=1"
+    - id: "fb"
+      name: "混乱粉笔"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/93796936/hideGoods=1"
+    - id: "xq"
+      name: "小Q不是导盲犬"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/546189/hideGoods=1"
+    - id: "bb"
+      name: "BB姬Studio"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/96575424/hideGoods=1"
+    - id: "zbh"
+      name: "章北海official"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/570064/hideGoods=1"
+    - id: "yhp"
+      name: "阳和平说事儿"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/605727461/hideGoods=1"
+
+    - id: "right"
+      name: "恩山无线论坛"
+      url: "https://hub.slarker.me/right/forum"
+
+
     - id: "microcomputer"
       name: "Microcomputer"
       url: "http://x1.mcplive.cn/?feed=rss2"
@@ -184,9 +219,6 @@ rss:
     - id: "hacker-news"
       name: "Hacker News"
       url: "https://hnrss.org/frontpage"
-    - id: "techcrunch"
-      name: "TechCrunch"
-      url: "https://techcrunch.com/feed/"
     - id: "arstechnica"
       name: "Ars Technica"
       url: "https://feeds.arstechnica.com/arstechnica/index"
@@ -211,13 +243,6 @@ rss:
     - id: "npr"
       name: "NPR"
       url: "https://feeds.npr.org/1001/rss.xml"
-
-    # ─────────────────────────────────────────────────
-    # 财经深度（市场分析/全球经济）
-    # ─────────────────────────────────────────────────
-    - id: "bloomberg"
-      name: "Bloomberg"
-      url: "https://feeds.bloomberg.com/markets/news.rss"
 
     # ─────────────────────────────────────────────────
     # 科技前沿（深度技术/AI/科学）
@@ -349,9 +374,9 @@ display:
   # 独立展示区：将指定平台/RSS 完整展示，不受关键词过滤
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
-    platforms: ["zaobao", "bilibili-hot-search"]     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
-    rss_feeds: ["ruanyifeng", "microcomputer", "2xnz", "ark", "huanqiukexue"]           # RSS 源 ID 列表（如 ["hacker-news"]）
-    max_items: 15                                # 每个源最多展示条数（0=不限制）
+    platforms: []     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
+    rss_feeds: ["bilibili-pop", "ruanyifeng", "microcomputer", "2xnz", "ark","right", "xuanli", "fb", "zbh", "yhp", "unclechen", "Github-trending-weekly"]           # RSS 源 ID 列表（如 ["hacker-news"]）
+    max_items: 12                                # 每个源最多展示条数（0=不限制）
 
 
 # ===============================================================
