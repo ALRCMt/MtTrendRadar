@@ -474,7 +474,7 @@ custom:
       end: "12:30"
       collect: true                # 仍然采集数据
       analyze: true                # 同步分析，确保推送结果为最新汇总
-      ai_mode: "daily"           # 周日推送当天/最近内容的汇总
+      ai_mode: "current"           # 周日推送当天/最近内容的汇总
       push: true                   # 仅在周日中午推送
       report_mode: "daily"       # 当日全部新闻汇总
       once:
