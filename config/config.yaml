@@ -233,7 +233,7 @@ rss:
     - id: "AnimeNewsNetwork"
       name: "Anime News Network"
       url: "https://www.animenewsnetwork.com/news/rss.xml"
-      max_items: 9
+     # max_items: 9
     # ─────────────────────────────────────────────────
     # 国际权威通讯社/媒体（全球视野）
     # ─────────────────────────────────────────────────
@@ -375,7 +375,7 @@ display:
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
     platforms: []     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
-    rss_feeds: ["bilibili-pop", "xz", "ruanyifeng", "microcomputer", "2xnz", "ark","right", "xuanli", "fb", "zbh", "yhp", "unclechen", "xkrb"]           # RSS 源 ID 列表（如 ["hacker-news"]）
+    rss_feeds: ["bilibili-pop", "xz", "ruanyifeng", "microcomputer", "2xnz", "ark","right", "xuanli", "fb", "zbh", "yhp", "unclechen", "xkrb", "bb"]           # RSS 源 ID 列表（如 ["hacker-news"]）
     max_items: 12                                # 每个源最多展示条数（0=不限制）
 
 
