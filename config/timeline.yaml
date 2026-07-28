@@ -413,7 +413,7 @@ custom:
                                    #   current       → 强制当前榜单
                                    #   incremental   → 强制增量模式
     push: false                    # 默认不推送，只有周日中午推送
-    report_mode: "daily"         # 默认使用当天汇总模式
+    report_mode: "current"         # 默认使用当天汇总模式
 
                                    
     # frequency_file: "general.txt"
@@ -470,8 +470,8 @@ custom:
 
     sunday_push:
       name: "周日中午推送"
-      start: "12:00"
-      end: "12:30"
+      start: "11:00"
+      end: "12:00"
       collect: true                # 仍然采集数据
       analyze: true                # 同步分析，确保推送结果为最新汇总
       ai_mode: "current"           # 周日推送当天/最近内容的汇总
