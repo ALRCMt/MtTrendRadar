@@ -458,7 +458,7 @@ custom:
 
     evening_analysis:
       name: "晚间分析"
-      start: "19:00"
+      start: "18:00"
       end: "21:00"
       analyze: true                # 晚上 8 点进行汇总分析
       ai_mode: "daily"           # AI 分析全天内容
