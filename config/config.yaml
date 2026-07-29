@@ -146,8 +146,6 @@ platforms:
       name: "36氪"
     - id: "oschina"
       name: "开源中国"
-    - id: "linuxdo"
-      name: "Linux Do"
     - id: "52pojie"
       name: "吾爱破解"
 
