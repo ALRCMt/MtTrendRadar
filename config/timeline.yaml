@@ -464,6 +464,7 @@ custom:
       ai_mode: "daily"           # AI 分析全天内容
       push: true                   #  改为推送，每晚推送当天汇总
       report_mode: "daily"       # 当日全部新闻汇总
+      min_score: 0.3             # 弱信号阈值：让 AI 分析能看到更低分的条目发现趋势
       once:
         analyze: true              # 本时间段内只分析一次
         push: true

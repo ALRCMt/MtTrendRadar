@@ -678,9 +678,12 @@ class NewsAnalyzer:
             if ai_filter_result and ai_filter_result.success:
                 print(f"[筛选] AI 筛选完成: {ai_filter_result.total_matched} 条匹配, {len(ai_filter_result.tags)} 个标签")
                 # 转换为与关键词匹配相同的数据结构
+                # 传入了分析用阈值 schedule.min_score，使低分弱信号进入 stats 但标记 is_analysis_only
+                analysis_min_score = schedule.min_score if schedule else None
                 stats, ai_rss_stats, ai_rss_new_stats = self.ctx.convert_ai_filter_to_report_data(
                     ai_filter_result, mode=mode,
                     new_titles=new_titles, rss_new_urls=rss_new_urls,
+                    analysis_min_score=analysis_min_score,
                 )
                 total_titles = sum(len(titles) for titles in data_source.values())
 
@@ -714,6 +717,9 @@ class NewsAnalyzer:
                 self.ctx.weight_config,
                 self.ctx.rank_threshold,
             )
+
+        # 生成推送/HTML 用的 stats（剔除 is_analysis_only 的弱信号条目）
+        push_stats = _strip_analysis_only(stats)
 
         # AI 分析（如果启用，用于 HTML 报告）
         ai_result = None
@@ -757,14 +763,14 @@ class NewsAnalyzer:
         # 计算 RSS 匹配条数（供 HTML 和推送共用）
         self._rss_matched_count = sum(stat.get("count", 0) for stat in rss_items) if rss_items else 0
 
-        # HTML生成（如果启用）— 使用翻译后的数据
+        # HTML生成（如果启用）— 使用翻译后的数据（不含 is_analysis_only 条目）
         html_file = None
         if self.ctx.config["STORAGE"]["FORMATS"]["HTML"]:
             display_regions = self.ctx.config.get("DISPLAY", {}).get("REGIONS", {})
             html_standalone = standalone_data if display_regions.get("STANDALONE", False) else None
             html_ai = ai_result if display_regions.get("AI_ANALYSIS", True) else None
             html_file = self.ctx.generate_html(
-                stats,
+                push_stats,
                 total_titles,
                 failed_ids=failed_ids,
                 new_titles=new_titles,
@@ -787,7 +793,7 @@ class NewsAnalyzer:
                 translate_report_func=translate_report_func,
             )
 
-        return stats, html_file, ai_result, rss_items, standalone_data, rss_new_items
+        return push_stats, html_file, ai_result, rss_items, standalone_data, rss_new_items
 
     def _send_notification_if_needed(
         self,
@@ -1634,6 +1640,25 @@ class NewsAnalyzer:
         finally:
             # 清理资源（包括过期数据清理和数据库连接关闭）
             self.ctx.cleanup()
+
+
+def _strip_analysis_only(stats: List[Dict]) -> List[Dict]:
+    """从 stats 中移除 is_analysis_only 标记的弱信号条目
+
+    这些条目仅供 AI 分析参考，不参与推送和 HTML 展示。
+    """
+    if not stats:
+        return stats
+    result = []
+    for group in stats:
+        titles = group.get("titles", [])
+        clean_titles = [t for t in titles if not t.get("is_analysis_only")]
+        if clean_titles:
+            clean_group = dict(group)
+            clean_group["titles"] = clean_titles
+            clean_group["count"] = len(clean_titles)
+            result.append(clean_group)
+    return result
 
 
 def main():

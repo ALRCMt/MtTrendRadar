@@ -30,6 +30,7 @@ class ResolvedSchedule:
     frequency_file: Optional[str] = None  # 频率词文件路径，None=使用默认
     filter_method: Optional[str] = None   # 筛选策略: "keyword"|"ai"，None=使用全局配置
     interests_file: Optional[str] = None  # AI 筛选兴趣文件，None=使用默认
+    min_score: Optional[float] = None     # AI 筛选最低分数阈值，None=使用全局配置
 
 
 class Scheduler:

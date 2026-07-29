@@ -504,6 +504,7 @@ custom:
       ai_mode: "daily"             # AI analyzes the whole day
       push: true                   # Evening push
       report_mode: "daily"         # All-news-of-the-day summary
+      min_score: 0.3               # Weak signal threshold: let AI see lower-scored items for trend discovery
       # once inherits default (analyze: true, push: true) → analyze/push once
 
 

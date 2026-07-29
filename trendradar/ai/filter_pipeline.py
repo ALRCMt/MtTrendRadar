@@ -542,9 +542,20 @@ class AIFilterPipeline:
         mode: str = "daily",
         new_titles: Optional[Dict] = None,
         rss_new_urls: Optional[set] = None,
+        analysis_min_score: Optional[float] = None,
     ) -> tuple:
         """
         将 AI 筛选结果转换为与关键词匹配相同的数据结构
+
+        Args:
+            ai_filter_result: AI 筛选结果
+            mode: 报告模式
+            new_titles: 新标题映射
+            rss_new_urls: 新的 RSS URL 集合
+            analysis_min_score: AI 分析最低分数（低于配置的 MIN_SCORE 时，
+                                介于 analysis_min_score 和 MIN_SCORE 之间的
+                                条目会被标记为 is_analysis_only，供 AI 分析参考
+                                但不推送不存储）
 
         Returns:
             (hotlist_stats, rss_stats, rss_new_stats)
@@ -588,7 +599,13 @@ class AIFilterPipeline:
                 if min_score > 0:
                     score = item.get("relevance_score", 0)
                     if score < min_score:
-                        continue
+                        # 检查是否允许 AI 分析看到更低分的弱信号
+                        if analysis_min_score is not None and min_score > analysis_min_score >= 0 and score >= analysis_min_score:
+                            # 浅拷贝避免修改原始数据，标记为"仅用于 AI 分析"
+                            item = dict(item)
+                            item["is_analysis_only"] = True
+                        else:
+                            continue
 
                 # 每个 feed 的条数上限
                 if self._feed_max_items_map and source_type == "rss":
@@ -698,7 +715,15 @@ class AIFilterPipeline:
             parts = [f"热榜 {hotlist_kept} 条"]
             if rss_kept > 0:
                 parts.append(f"RSS {rss_kept} 条")
-            print(f"[AI筛选] 分数过滤：min_score={min_score}，保留 {total_kept} 条 score≥{min_score} ({', '.join(parts)})")
+            msg = f"[AI筛选] 分数过滤：min_score={min_score}，保留 {total_kept} 条 score≥{min_score} ({', '.join(parts)})"
+            if analysis_min_score is not None and analysis_min_score < min_score:
+                analysis_only = sum(
+                    1 for s in hotlist_stats + rss_stats
+                    for t in s.get("titles", [])
+                    if t.get("is_analysis_only")
+                )
+                msg += f"，其中 {analysis_only} 条仅用于 AI 分析（analysis_min_score={analysis_min_score}）"
+            print(msg)
 
         sort_key_priority = lambda x: (x.get("position", 9999), -x["count"], x["word"])
         sort_key_count = lambda x: (-x["count"], x.get("position", 9999), x["word"])
