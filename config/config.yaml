@@ -63,7 +63,7 @@ schedule:
 # ===============================================================
 platforms:
   enabled: true                         # 是否启用热榜平台抓取（true=启用, false=关闭）
-  api_url: ""                            # 热榜数据 API 地址（留空使用默认地址）
+  api_url: "https://trends.zzzkkkccc.site/api/s"                            # 热榜数据 API 地址（留空使用默认地址）
                                         # 如果你自行部署了 newsnow，填入你的地址，如: https://your-domain.com/api/s
   sources:
     - id: "thepaper"
@@ -72,6 +72,7 @@ platforms:
     - id: "bilibili-hot-search"
       name: "bilibili热搜"
       expected_domain: "bilibili.com"
+      
     - id: "tieba"
       name: "贴吧"
       expected_domain: "baidu.com"
@@ -96,6 +97,17 @@ platforms:
     - id: "ifeng"
       name: "凤凰网"
       expected_domain: "ifeng.com"
+    - id: "nytimes"
+      name: "纽约时报"
+    - id: "bbc"
+      name: "BBC News"
+    - id: "guardian"
+      name: "卫报"
+    - id: "aljazeera"
+      name: "半岛电视台"
+    - id: "nhk"
+      name: "NHK"
+    
 
     # ─────────────────────────────────────────────────
     # 财经投资类（市场动态/宏观/投资）
@@ -130,6 +142,14 @@ platforms:
       name: "远景论坛"
     - id: "sspai"
       name: "少数派"
+    - id: "36kr"
+      name: "36氪"
+    - id: "oschina"
+      name: "开源中国"
+    - id: "linuxdo"
+      name: "Linux Do"
+    - id: "52pojie"
+      name: "吾爱破解"
 
     # ─────────────────────────────────────────────────
     # 其他（信息聚合/搜索工具）
@@ -202,8 +222,21 @@ rss:
       name: "冷场的匣子"
       url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/33592703/hideGoods=1"
     - id: "xkrb"
-      name: "芝士华莱士"
+      name: "显卡日报"
       url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/22697887/hideGoods=1"
+    - id: "yihuo"
+      name: "疑惑星球"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/409842788/hideGoods=1"
+    - id: "fangshitafu"
+      name: "芳斯塔芙"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/72270557/hideGoods=1"
+    - id: "bidai"
+      name: "毕导THU"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/254463269/hideGoods=1"
+    - id: "geekerwan"
+      name: "极客湾Geekerwan"
+      url: "https://rsshub-balancer.virworks.moe/bilibili/user/dynamic/25876945/hideGoods=1"
+    
     - id: "right"
       name: "恩山无线论坛"
       url: "https://hub.slarker.me/right/forum"
@@ -233,19 +266,10 @@ rss:
     - id: "AnimeNewsNetwork"
       name: "Anime News Network"
       url: "https://www.animenewsnetwork.com/news/rss.xml"
-     # max_items: 9
+    #  max_items: 9
     # ─────────────────────────────────────────────────
     # 国际权威通讯社/媒体（全球视野）
     # ─────────────────────────────────────────────────
-    - id: "bbc-news"
-      name: "BBC News"
-      url: "https://feeds.bbci.co.uk/news/rss.xml"
-    - id: "guardian"
-      name: "The Guardian"
-      url: "https://www.theguardian.com/world/rss"
-    - id: "npr"
-      name: "NPR"
-      url: "https://feeds.npr.org/1001/rss.xml"
 
     # ─────────────────────────────────────────────────
     # 科技前沿（深度技术/AI/科学）
@@ -261,11 +285,8 @@ rss:
       url: "https://www.huanqiukexue.com/?feed=rss2"
 
     # ─────────────────────────────────────────────────
-    # 中文深度报道/商业科技
+    # 游戏/动漫/ACG（资讯/二次元/娱乐）
     # ─────────────────────────────────────────────────
-    - id: "36kr"
-      name: "36氪"
-      url: "https://36kr.com/feed"
     - id: "ark"
       name: "明日方舟"
       url: "https://hub.slarker.me/hypergryph/arknights/news"
@@ -375,7 +396,7 @@ display:
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
     platforms: []     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
-    rss_feeds: ["bilibili-pop", "xz", "ruanyifeng", "microcomputer", "2xnz", "ark","right", "xuanli", "fb", "zbh", "yhp", "unclechen", "xkrb", "bb"]           # RSS 源 ID 列表（如 ["hacker-news"]）
+    rss_feeds: ["bilibili-pop","yihuo","xz", "ruanyifeng", "microcomputer", "2xnz", "ark","xuanli", "fb", "zbh", "yhp", "unclechen", "xkrb", "bb"]           # RSS 源 ID 列表（如 ["hacker-news"]）
     max_items: 12                                # 每个源最多展示条数（0=不限制）
 
 

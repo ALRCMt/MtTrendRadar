@@ -95,72 +95,62 @@ class RSSFetcher:
         Returns:
             (条目列表, 错误信息) 元组
         """
-        try:
-            # 403 重试：部分站点（如 linux.do）偶尔会临时封禁，重试可缓解
-            max_retries = 4
-            response = None
-            for attempt in range(max_retries + 1):
+        max_retries = 4
+        min_retry_wait = 3
+        max_retry_wait = 5
+
+        retries = 0
+        while retries <= max_retries:
+            try:
                 response = self.session.get(feed.url, timeout=self.timeout)
-                if response.status_code != 403:
-                    break
-                if attempt < max_retries:
-                    wait = (attempt + 1) * 3.0 + random.uniform(0, 1.0)
-                    print(f"[RSS] {feed.name}: 收到 403，{wait:.1f}s 后第 {attempt + 2} 次尝试...")
-                    time.sleep(wait)
-            response.raise_for_status()
+                response.raise_for_status()
+                break  # 成功则跳出重试循环
 
-            parsed_items = self.parser.parse(response.text, feed.url)
+            except Exception as e:
+                retries += 1
+                if retries <= max_retries:
+                    base_wait = random.uniform(min_retry_wait, max_retry_wait)
+                    additional_wait = (retries - 1) * random.uniform(1, 2)
+                    wait_time = base_wait + additional_wait
+                    print(f"[RSS] {feed.name}: 请求失败 ({e}), {wait_time:.2f}s 后第 {retries} 次重试...")
+                    time.sleep(wait_time)
+                else:
+                    error = f"请求失败: {e}"
+                    print(f"[RSS] {feed.name}: {error}")
+                    return [], error
 
-            # 限制条目数量（0=不限制）
-            if feed.max_items > 0:
-                parsed_items = parsed_items[:feed.max_items]
+        parsed_items = self.parser.parse(response.text, feed.url)
 
-            # 转换为 RSSItem（使用配置的时区）
-            now = get_configured_time(self.timezone)
-            crawl_time = now.strftime("%H:%M")
-            items = []
+        # 限制条目数量（0=不限制）
+        if feed.max_items > 0:
+            parsed_items = parsed_items[:feed.max_items]
 
-            for parsed in parsed_items:
-                item = RSSItem(
-                    title=parsed.title,
-                    feed_id=feed.id,
-                    feed_name=feed.name,
-                    url=parsed.url,
-                    guid=parsed.guid or "",
-                    published_at=parsed.published_at or "",
-                    summary=parsed.summary or "",
-                    author=parsed.author or "",
-                    crawl_time=crawl_time,
-                    first_time=crawl_time,
-                    last_time=crawl_time,
-                    count=1,
-                )
-                items.append(item)
+        # 转换为 RSSItem（使用配置的时区）
+        now = get_configured_time(self.timezone)
+        crawl_time = now.strftime("%H:%M")
+        items = []
 
-            # 注意：新鲜度过滤已移至推送阶段（_convert_rss_items_to_list）
-            # 这样所有文章都会存入数据库，但旧文章不会推送
-            print(f"[RSS] {feed.name}: 获取 {len(items)} 条")
-            return items, None
+        for parsed in parsed_items:
+            item = RSSItem(
+                title=parsed.title,
+                feed_id=feed.id,
+                feed_name=feed.name,
+                url=parsed.url,
+                guid=parsed.guid or "",
+                published_at=parsed.published_at or "",
+                summary=parsed.summary or "",
+                author=parsed.author or "",
+                crawl_time=crawl_time,
+                first_time=crawl_time,
+                last_time=crawl_time,
+                count=1,
+            )
+            items.append(item)
 
-        except requests.Timeout:
-            error = f"请求超时 ({self.timeout}s)"
-            print(f"[RSS] {feed.name}: {error}")
-            return [], error
-
-        except requests.RequestException as e:
-            error = f"请求失败: {e}"
-            print(f"[RSS] {feed.name}: {error}")
-            return [], error
-
-        except ValueError as e:
-            error = f"解析失败: {e}"
-            print(f"[RSS] {feed.name}: {error}")
-            return [], error
-
-        except Exception as e:
-            error = f"未知错误: {e}"
-            print(f"[RSS] {feed.name}: {error}")
-            return [], error
+        # 注意：新鲜度过滤已移至推送阶段（_convert_rss_items_to_list）
+        # 这样所有文章都会存入数据库，但旧文章不会推送
+        print(f"[RSS] {feed.name}: 获取 {len(items)} 条")
+        return items, None
 
     def fetch_all(self) -> RSSData:
         """
