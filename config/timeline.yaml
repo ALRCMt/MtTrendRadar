@@ -458,8 +458,8 @@ custom:
 
     evening_analysis:
       name: "晚间分析"
-      start: "18:00"
-      end: "21:00"
+      start: "17:30"
+      end: "20:30"
       analyze: true                # 晚上 8 点进行汇总分析
       ai_mode: "daily"           # AI 分析全天内容
       push: true                   #  改为推送，每晚推送当天汇总
@@ -470,7 +470,7 @@ custom:
 
     sunday_push:
       name: "周日中午推送"
-      start: "09:30"
+      start: "08:30"
       end: "12:00"
       collect: true                # 仍然采集数据
       analyze: true                # 同步分析，确保推送结果为最新汇总
