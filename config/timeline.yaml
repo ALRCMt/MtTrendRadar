@@ -470,7 +470,7 @@ custom:
 
     sunday_push:
       name: "周日中午推送"
-      start: "10:30"
+      start: "09:30"
       end: "12:00"
       collect: true                # 仍然采集数据
       analyze: true                # 同步分析，确保推送结果为最新汇总
