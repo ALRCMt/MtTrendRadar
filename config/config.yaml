@@ -290,7 +290,7 @@ rss:
     # ─────────────────────────────────────────────────
     - id: "ark"
       name: "明日方舟"
-      url: "https://hub.slarker.me/hypergryph/arknights/announce"
+      url: "https://hub.slarker.me/hypergryph/arknights/news"
 
     # 自定义源示例
     # - id: "custom-feed"
