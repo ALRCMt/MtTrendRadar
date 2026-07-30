@@ -243,8 +243,8 @@ class AITranslator:
         # 统计非空白字符总数
         non_space_chars = len(text.strip())
 
-        # 如果 CJK 字符占比 >= 40%，认为已为中文
-        return non_space_chars > 0 and (cjk_chars / non_space_chars) >= 0.4
+        # 如果 CJK 字符占比 >= 20%，认为已为中文
+        return non_space_chars > 0 and (cjk_chars / non_space_chars) >= 0.2
 
     def _format_batch_content(self, texts: List[str]) -> str:
         """格式化批量翻译内容"""
