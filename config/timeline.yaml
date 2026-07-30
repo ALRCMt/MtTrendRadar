@@ -127,7 +127,7 @@ presets:
       ai_mode: "current"           # AI 分析当前榜单
       push: true                   # 有新内容就推送
       report_mode: "current"   # 推送内容，重复
-      min_score: 0.3           # 手动触发时可见弱信号趋势
+      min_score: 0.4           # 手动触发时可见弱信号趋势
       once:                        # 限制每个时间段内只执行一次
         analyze: false             #   不限制分析次数
         push: false                #   不限制推送次数
@@ -465,7 +465,7 @@ custom:
       ai_mode: "daily"           # AI 分析全天内容
       push: true                   #  改为推送，每晚推送当天汇总
       report_mode: "daily"       # 当日全部新闻汇总
-      min_score: 0.3             # 弱信号阈值：让 AI 分析能看到更低分的条目发现趋势
+      min_score: 0.4             # 弱信号阈值：让 AI 分析能看到更低分的条目发现趋势
       once:
         analyze: true              # 本时间段内只分析一次
         push: true
@@ -495,7 +495,7 @@ custom:
     weekday:
       periods: ["evening_analysis"]
     sunday:
-      periods: ["evening_analysis", "sunday_push"]
+      periods: ["sunday_push"]
 
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
