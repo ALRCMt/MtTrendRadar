@@ -141,39 +141,7 @@ class AITranslator:
         if not texts:
             return batch_result
 
-        # 过滤空文本 + 已为目标语言的文本
-        non_empty_indices = []
-        non_empty_texts = []
-        for i, text in enumerate(texts):
-            if text and text.strip():
-                non_empty_indices.append(i)
-                non_empty_texts.append(text)
-
-        # 预过滤：跳过已为目标语言的文本（如中文→中文时不需翻译）
-        need_translate_indices = []
-        need_translate_texts = []
-        already_target = []  # (index_in_non_empty, text)
-        for idx, text in zip(non_empty_indices, non_empty_texts):
-            if self._is_already_target_language(text):
-                already_target.append((idx, text))
-            else:
-                need_translate_indices.append(idx)
-                need_translate_texts.append(text)
-
-        # 已为目标语言的文本直接标记成功
-        for idx, text in already_target:
-            batch_result.results[idx].translated_text = text
-            batch_result.results[idx].success = True
-            batch_result.success_count += 1
-
-        if not need_translate_texts:
-            return batch_result
-
-        # 后续逻辑改用过滤后的列表
-        non_empty_indices = need_translate_indices
-        non_empty_texts = need_translate_texts
-
-        # 初始化结果列表
+        # 初始化结果列表（必须先初始化，后续代码依赖 results 已填充）
         for text in texts:
             batch_result.results.append(TranslationResult(original_text=text))
 
@@ -184,8 +152,35 @@ class AITranslator:
                 batch_result.results[i].success = True
                 batch_result.success_count += 1
 
+        # 构建非空文本列表
+        non_empty_indices = []
+        non_empty_texts = []
+        for i, text in enumerate(texts):
+            if text and text.strip():
+                non_empty_indices.append(i)
+                non_empty_texts.append(text)
+
         if not non_empty_texts:
             return batch_result
+
+        # 预过滤：跳过已为目标语言的文本（如中文→中文时不需翻译）
+        need_translate_indices = []
+        need_translate_texts = []
+        for idx, text in zip(non_empty_indices, non_empty_texts):
+            if self._is_already_target_language(text):
+                batch_result.results[idx].translated_text = text
+                batch_result.results[idx].success = True
+                batch_result.success_count += 1
+            else:
+                need_translate_indices.append(idx)
+                need_translate_texts.append(text)
+
+        if not need_translate_texts:
+            return batch_result
+
+        # 后续逻辑改用过滤后的列表
+        non_empty_indices = need_translate_indices
+        non_empty_texts = need_translate_texts
 
         try:
             # 构建批量翻译内容（使用编号格式）
