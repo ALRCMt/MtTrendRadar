@@ -6,6 +6,7 @@ AI 翻译器模块
 基于 LiteLLM 统一接口，支持 100+ AI 提供商
 """
 
+import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
@@ -140,13 +141,37 @@ class AITranslator:
         if not texts:
             return batch_result
 
-        # 过滤空文本
+        # 过滤空文本 + 已为目标语言的文本
         non_empty_indices = []
         non_empty_texts = []
         for i, text in enumerate(texts):
             if text and text.strip():
                 non_empty_indices.append(i)
                 non_empty_texts.append(text)
+
+        # 预过滤：跳过已为目标语言的文本（如中文→中文时不需翻译）
+        need_translate_indices = []
+        need_translate_texts = []
+        already_target = []  # (index_in_non_empty, text)
+        for idx, text in zip(non_empty_indices, non_empty_texts):
+            if self._is_already_target_language(text):
+                already_target.append((idx, text))
+            else:
+                need_translate_indices.append(idx)
+                need_translate_texts.append(text)
+
+        # 已为目标语言的文本直接标记成功
+        for idx, text in already_target:
+            batch_result.results[idx].translated_text = text
+            batch_result.results[idx].success = True
+            batch_result.success_count += 1
+
+        if not need_translate_texts:
+            return batch_result
+
+        # 后续逻辑改用过滤后的列表
+        non_empty_indices = need_translate_indices
+        non_empty_texts = need_translate_texts
 
         # 初始化结果列表
         for text in texts:
@@ -205,6 +230,26 @@ class AITranslator:
             batch_result.fail_count = len(non_empty_indices)
 
         return batch_result
+
+    def _is_already_target_language(self, text: str) -> bool:
+        """
+        判断文本是否已为目标语言，避免不必要地调用翻译 API
+
+        当前仅对中文目标语言做 CJK 字符检测。
+        """
+        if self.target_language != "中文":
+            return False
+
+        if not text or not text.strip():
+            return False
+
+        # 统计 CJK 统一表意文字（基本区 4E00-9FFF）
+        cjk_chars = len(re.findall(r'[\u4e00-\u9fff]', text))
+        # 统计非空白字符总数
+        non_space_chars = len(text.strip())
+
+        # 如果 CJK 字符占比 >= 40%，认为已为中文
+        return non_space_chars > 0 and (cjk_chars / non_space_chars) >= 0.4
 
     def _format_batch_content(self, texts: List[str]) -> str:
         """格式化批量翻译内容"""

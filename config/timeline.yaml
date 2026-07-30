@@ -127,6 +127,7 @@ presets:
       ai_mode: "current"           # AI 分析当前榜单
       push: true                   # 有新内容就推送
       report_mode: "current"   # 推送内容，重复
+      min_score: 0.3           # 手动触发时可见弱信号趋势
       once:                        # 限制每个时间段内只执行一次
         analyze: false             #   不限制分析次数
         push: false                #   不限制推送次数
