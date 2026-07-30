@@ -172,6 +172,7 @@ class Scheduler:
             frequency_file=merged.get("frequency_file"),
             filter_method=merged.get("filter_method"),
             interests_file=merged.get("interests_file"),
+            min_score=merged.get("min_score"),
         )
 
         # 打印行为摘要
@@ -185,6 +186,8 @@ class Scheduler:
         print(f"[调度] 行为: {', '.join(actions) if actions else '无'}")
         if resolved.frequency_file:
             print(f"[调度] 频率词文件: {resolved.frequency_file}")
+        if resolved.min_score is not None:
+            print(f"[调度] AI 分析最低分: {resolved.min_score}")
 
         return resolved
 
