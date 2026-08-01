@@ -30,4 +30,6 @@ ENV MCP_PORT=3333
 EXPOSE 3333
 
 # 启动 MCP 服务器（HTTP 模式）
+# 容器内绑定 0.0.0.0 是必要的；外部访问范围由 docker-compose 的 MCP_HOST 控制
+# 如需启用 Bearer Token 认证，设置环境变量 MCP_HTTP_TOKEN
 CMD sh -c "python -m mcp_server.server --transport http --host 0.0.0.0 --port ${MCP_PORT}"
