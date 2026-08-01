@@ -522,11 +522,13 @@ class AppContext:
         new_titles: Optional[Dict] = None,
         rss_new_urls: Optional[set] = None,
         analysis_min_score: Optional[float] = None,
+        max_news: Optional[int] = None,
     ) -> tuple:
         """将 AI 筛选结果转换为与关键词匹配相同的数据结构"""
         return self._get_ai_filter_pipeline().convert_to_report_data(
             ai_filter_result, mode, new_titles, rss_new_urls,
             analysis_min_score=analysis_min_score,
+            max_news=max_news,
         )
 
     # === 资源清理 ===

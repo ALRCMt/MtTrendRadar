@@ -341,7 +341,7 @@ filter:
 # 4.6 AI 智能筛选配置（仅 filter.method=ai 时生效）
 # ===============================================================
 ai_filter:
-  batch_size: 25                          # 每批发送给 AI 的标题数，超过此数量自动分批
+  batch_size: 50                         # 每批发送给 AI 的标题数，超过此数量自动分批
   batch_interval: 2                       # 分批间隔（秒），避免触发 API 限流，0=不等待
 
   max_empty_retries: 2                    # AI 空响应最大重试次数（0=不重试）
@@ -581,8 +581,10 @@ ai_analysis:
                                     # follow_report = 跟随 report.mode（默认）
                                     # daily / current / incremental = 强制使用指定模式
 
-  max_news_for_analysis: 1000        # 参与分析的新闻数量上限（控制 token 成本的关键项）
+  max_news_for_analysis: 1700        # 参与分析的新闻数量上限（控制 token 成本的关键项）
                                     # 热榜优先占用配额，RSS 用剩余配额，独立展示区不受此限制
+                                    # 1700：容纳全天所有 ≥analysis_min_score（0.4）的匹配结果
+                                    # （热榜 1184 + RSS 约 400），AI 深度分析不受每标签展示裁剪影响
 
   include_rss: true                 # 是否包含 RSS 内容进行分析（true=包含, false=不包含）
   include_standalone: true          # 是否纳入独立展示区数据（true=纳入, false=不纳入）

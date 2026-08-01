@@ -128,8 +128,9 @@ MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization
 
 ### AI 分析
 
-- **最低分阈值**：  
-  `filter_pipeline.py` 的 `convert_to_report_data()` 加 `analysis_min_score` 参数。分数低于 `min_score` 但 ≥ `analysis_min_score` 的条目标记 `is_analysis_only=True`，只供 AI 分析参考，不推送。`context.py` 和 `__main__.py`（新增 `_strip_analysis_only()` 剔除这些条目）配套改动
+- **最低分阈值 + AI 全量分析**：  
+  `filter_pipeline.py` 的 `convert_to_report_data()` 加 `analysis_min_score` 和 `max_news` 参数。分数低于 `min_score` 但 ≥ `analysis_min_score` 的条目标记 `is_analysis_only=True`，只供 AI 分析参考，不推送。AI 深度分析传 `max_news=0` 生成全量数据——覆盖全天所有 ≥ `analysis_min_score` 的结果，不受每标签 `MAX_NEWS_PER_KEYWORD`（默认 20）展示截断影响；  
+  推送/HTML 仍用默认截断版。`context.py` 和 `__main__.py` 配套改动（新增 `_strip_analysis_only()` 剔除弱信号条目、拆分推送/AI 分析两份数据流）
 
 - **DeepSeek V4 thinking**：  
   `ai/client.py` 支持 `thinking_mode`，用 `extra_body={"thinking": {"type": "enabled"/"disabled"}}` 控制，同时支持 `extra_params` 合并

@@ -669,6 +669,10 @@ class NewsAnalyzer:
     ) -> Tuple[List[Dict], Optional[str], Optional[AIAnalysisResult], Optional[List[Dict]], Optional[Dict], Optional[List[Dict]]]:
         """统一的分析流水线：数据处理 → 统计计算（关键词/AI筛选）→ AI分析 → HTML生成"""
 
+        # AI 深度分析专用全量数据（AI 筛选策略时生成，不受每标签 MAX_NEWS_PER_KEYWORD 展示截断影响）
+        ai_analysis_stats: Optional[List[Dict]] = None
+        ai_analysis_rss_stats: Optional[List[Dict]] = None
+
         # 根据筛选策略选择数据处理方式
         if self.filter_method == "ai":
             # === AI 筛选策略 ===
@@ -684,6 +688,14 @@ class NewsAnalyzer:
                     ai_filter_result, mode=mode,
                     new_titles=new_titles, rss_new_urls=rss_new_urls,
                     analysis_min_score=analysis_min_score,
+                )
+                # AI 深度分析专用全量数据：不受每标签 max_news_per_keyword=20 展示截断影响，
+                # 覆盖全天所有 ≥analysis_min_score 的匹配结果（推送/HTML 仍用上面的截断版）
+                ai_analysis_stats, ai_analysis_rss_stats, _ = self.ctx.convert_ai_filter_to_report_data(
+                    ai_filter_result, mode=mode,
+                    new_titles=new_titles, rss_new_urls=rss_new_urls,
+                    analysis_min_score=analysis_min_score,
+                    max_news=0,
                 )
                 total_titles = sum(len(titles) for titles in data_source.values())
 
@@ -720,6 +732,9 @@ class NewsAnalyzer:
 
         # 生成推送/HTML 用的 stats（剔除 is_analysis_only 的弱信号条目）
         push_stats = _strip_analysis_only(stats)
+        # RSS 同样剔除弱信号条目（弱信号仅供 AI 分析参考，不推送不展示）
+        push_rss_items = _strip_analysis_only(rss_items) if rss_items else rss_items
+        push_rss_new_items = _strip_analysis_only(rss_new_items) if rss_new_items else rss_new_items
 
         # AI 分析（如果启用，用于 HTML 报告）
         ai_result = None
@@ -728,8 +743,12 @@ class NewsAnalyzer:
             # 获取模式策略来确定报告类型
             mode_strategy = self._get_mode_strategy()
             report_type = mode_strategy["report_type"]
+            # AI 深度分析优先使用全量数据（AI 筛选策略时生成，覆盖全天所有 ≥analysis_min_score
+            # 的结果，不受每标签 MAX_NEWS_PER_KEYWORD 展示截断影响）；关键词策略回退到 stats
+            ai_stats_for_analysis = ai_analysis_stats if ai_analysis_stats is not None else stats
+            ai_rss_for_analysis = ai_analysis_rss_stats if ai_analysis_rss_stats is not None else rss_items
             ai_result = self._run_ai_analysis(
-                stats, rss_items, mode, report_type, id_to_name,
+                ai_stats_for_analysis, ai_rss_for_analysis, mode, report_type, id_to_name,
                 current_results=data_source, schedule=schedule,
                 standalone_data=standalone_data
             )
@@ -745,8 +764,8 @@ class NewsAnalyzer:
             _, rss_items, rss_new_items, standalone_data = \
                 dispatcher.translate_content(
                     report_data={"stats": [], "new_titles": []},
-                    rss_items=rss_items,
-                    rss_new_items=rss_new_items,
+                    rss_items=push_rss_items,
+                    rss_new_items=push_rss_new_items,
                     standalone_data=standalone_data,
                     display_regions=display_regions,
                 )
@@ -759,6 +778,10 @@ class NewsAnalyzer:
                     skip_rss=True, skip_standalone=True,
                 )
                 return translated_rd
+        else:
+            # 未启用翻译时，RSS/独立区直接使用剥离弱信号后的版本
+            rss_items = push_rss_items
+            rss_new_items = push_rss_new_items
 
         # 计算 RSS 匹配条数（供 HTML 和推送共用）
         self._rss_matched_count = sum(stat.get("count", 0) for stat in rss_items) if rss_items else 0

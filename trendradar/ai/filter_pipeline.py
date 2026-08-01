@@ -543,6 +543,7 @@ class AIFilterPipeline:
         new_titles: Optional[Dict] = None,
         rss_new_urls: Optional[set] = None,
         analysis_min_score: Optional[float] = None,
+        max_news: Optional[int] = None,
     ) -> tuple:
         """
         将 AI 筛选结果转换为与关键词匹配相同的数据结构
@@ -556,6 +557,9 @@ class AIFilterPipeline:
                                 介于 analysis_min_score 和 MIN_SCORE 之间的
                                 条目会被标记为 is_analysis_only，供 AI 分析参考
                                 但不推送不存储）
+            max_news: 每标签条数上限覆盖值（None=使用配置的 MAX_NEWS_PER_KEYWORD；
+                      0=不限制；正数=自定义上限）。AI 深度分析传入 0 以覆盖
+                      全天所有 ≥analysis_min_score 的结果，不受展示截断影响。
 
         Returns:
             (hotlist_stats, rss_stats, rss_new_stats)
@@ -662,6 +666,7 @@ class AIFilterPipeline:
                     "rank_threshold": self._rank_threshold,
                     "count": item.get("count", 1),
                     "is_new": is_new,
+                    "is_analysis_only": item.get("is_analysis_only", False),
                     "time_display": time_display,
                     "matched_keyword": tag_name,
                 }
@@ -673,8 +678,11 @@ class AIFilterPipeline:
 
             if hotlist_titles:
                 hotlist_titles = self._deduplicate_titles(hotlist_titles)
-                if self._max_news > 0:
-                    hotlist_titles = hotlist_titles[:self._max_news]
+                # max_news 覆盖配置的 MAX_NEWS_PER_KEYWORD：推送/HTML 用配置值(20)做展示裁剪，
+                # AI 深度分析传 0 表示不限制（覆盖全天所有 ≥analysis_min_score 的结果）
+                per_tag_limit = self._max_news if max_news is None else max_news
+                if per_tag_limit > 0:
+                    hotlist_titles = hotlist_titles[:per_tag_limit]
                 hotlist_stats.append({
                     "word": tag_name,
                     "count": len(hotlist_titles),
@@ -684,8 +692,9 @@ class AIFilterPipeline:
 
             if rss_titles:
                 rss_titles = self._deduplicate_titles(rss_titles)
-                if self._max_news > 0:
-                    rss_titles = rss_titles[:self._max_news]
+                per_tag_limit = self._max_news if max_news is None else max_news
+                if per_tag_limit > 0:
+                    rss_titles = rss_titles[:per_tag_limit]
                 rss_stats.append({
                     "word": tag_name,
                     "count": len(rss_titles),

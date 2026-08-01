@@ -420,8 +420,10 @@ ai_analysis:
                                     # follow_report = follow report.mode (default)
                                     # daily / current / incremental = force the specified mode
 
-  max_news_for_analysis: 150        # Max number of news items for analysis (key to controlling token cost)
+  max_news_for_analysis: 1700       # Max number of news items for analysis (key to controlling token cost)
                                     # Hot lists take the quota first; RSS uses the remainder; standalone is not limited
+                                    # 1700: accommodates ALL matched results ≥ analysis_min_score (0.4) for the day
+                                    # (hotlist ~1184 + RSS ~400) — deep analysis is not limited by per-keyword display cap
 
   include_rss: false                # Include RSS content in analysis (true=include, false=exclude)
   include_standalone: true          # Include standalone-region data (true=include, false=exclude)
