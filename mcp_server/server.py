@@ -7,6 +7,7 @@ TrendRadar MCP Server - FastMCP 2.0 实现
 
 import asyncio
 import json
+import os
 from typing import List, Optional, Dict, Union
 
 from fastmcp import FastMCP
@@ -1112,13 +1113,55 @@ async def send_notification(
     return json.dumps(result, ensure_ascii=False, indent=2)
 
 
+# ==================== HTTP 认证中间件 ====================
+
+def _create_auth_middleware(token: str):
+    """创建 Bearer Token 认证中间件（纯 ASGI 实现，不干扰 MCP 流式传输）。
+
+    所有未携带正确 `Authorization: Bearer <token>` 请求头的 HTTP 请求将返回 401。
+    """
+    from starlette.middleware import Middleware
+
+    expected = f"Bearer {token}"
+
+    class BearerAuthMiddleware:
+        """检查 Authorization 头的纯 ASGI 中间件。"""
+        def __init__(self, app):
+            self.app = app
+
+        async def __call__(self, scope, receive, send):
+            if scope["type"] == "http":
+                headers = dict(scope.get("headers", []))
+                auth = headers.get(b"authorization", b"").decode("latin-1")
+                if auth != expected:
+                    body = (
+                        b'{"error":"unauthorized",'
+                        b'"detail":"missing or invalid bearer token"}'
+                    )
+                    await send({
+                        "type": "http.response.start",
+                        "status": 401,
+                        "headers": [
+                            (b"content-type", b"application/json"),
+                            (b"content-length", str(len(body)).encode()),
+                            (b"www-authenticate", b"Bearer"),
+                        ],
+                    })
+                    await send({"type": "http.response.body", "body": body})
+                    return
+            await self.app(scope, receive, send)
+
+    return Middleware(BearerAuthMiddleware)
+
+
 # ==================== 启动入口 ====================
 
 def run_server(
     project_root: Optional[str] = None,
     transport: str = 'stdio',
-    host: str = '0.0.0.0',
-    port: int = 3333
+    host: str = '127.0.0.1',
+    port: int = 3333,
+    token: Optional[str] = None
 ):
     """
     启动 MCP 服务器
@@ -1126,9 +1169,13 @@ def run_server(
     Args:
         project_root: 项目根目录路径
         transport: 传输模式，'stdio' 或 'http'
-        host: HTTP模式的监听地址，默认 0.0.0.0
+        host: HTTP模式的监听地址，默认 127.0.0.1（仅本机）
         port: HTTP模式的监听端口，默认 3333
+        token: HTTP模式的Bearer Token认证令牌；未设置时尝试读取环境变量 MCP_HTTP_TOKEN。
+               设置了 token 后，所有 HTTP 请求必须携带 `Authorization: Bearer <token>`。
     """
+    # 认证令牌：显式参数优先，其次环境变量
+    auth_token = token or os.environ.get('MCP_HTTP_TOKEN', '') or None
     # 初始化工具实例
     _get_tools(project_root)
 
@@ -1145,6 +1192,11 @@ def run_server(
     elif transport == 'http':
         print(f"  协议: MCP over HTTP (生产环境)")
         print(f"  服务器监听: {host}:{port}")
+        if auth_token:
+            print(f"  认证: Bearer Token (已启用)")
+        else:
+            print(f"  认证: 未启用 (仅建议本机/内网使用)")
+            print(f"  提示: 如需远程访问，请设置 --token 参数或环境变量 MCP_HTTP_TOKEN")
 
     if project_root:
         print(f"  项目目录: {project_root}")
@@ -1205,11 +1257,15 @@ def run_server(
         mcp.run(transport='stdio')
     elif transport == 'http':
         # HTTP 模式（生产推荐）
+        http_kwargs = {}
+        if auth_token:
+            http_kwargs['middleware'] = [_create_auth_middleware(auth_token)]
         mcp.run(
             transport='http',
             host=host,
             port=port,
-            path='/mcp'  # HTTP 端点路径
+            path='/mcp',  # HTTP 端点路径
+            **http_kwargs
         )
     else:
         raise ValueError(f"不支持的传输模式: {transport}")
@@ -1233,14 +1289,19 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--host',
-        default='0.0.0.0',
-        help='HTTP模式的监听地址，默认 0.0.0.0'
+        default='127.0.0.1',
+        help='HTTP模式的监听地址，默认 127.0.0.1（仅本机）；如需远程访问请显式指定并配合 --token'
     )
     parser.add_argument(
         '--port',
         type=int,
         default=3333,
         help='HTTP模式的监听端口，默认 3333'
+    )
+    parser.add_argument(
+        '--token',
+        default=None,
+        help='HTTP模式的Bearer Token认证令牌；也可通过环境变量 MCP_HTTP_TOKEN 设置'
     )
     parser.add_argument(
         '--project-root',
@@ -1253,5 +1314,6 @@ if __name__ == '__main__':
         project_root=args.project_root,
         transport=args.transport,
         host=args.host,
-        port=args.port
+        port=args.port,
+        token=args.token
     )
