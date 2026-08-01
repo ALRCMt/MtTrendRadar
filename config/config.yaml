@@ -544,12 +544,19 @@ ai:
   temperature: 1.0                  # 采样温度 (0.0-2.0)
                                     # 注意：部分模型(如 gpt-5)可能要求必须为 1.0，否则会报错
   
-  max_tokens: 100000              # 最大生成 token 数
+  max_tokens: 15000              # 最大生成 token 数
                                     # 注意：如果 API 不支持此参数(报 HTTP 400)，请设为 0 以禁用发送
   # 高级选项
   num_retries: 1                    # 失败重试次数
   fallback_models: []               # 备用模型列表（可选）
                                     # 示例: ["openai/gpt-4o-mini", "openai/deepseek-ai/DeepSeek-V3"]
+
+  # 思考模式控制（DeepSeek V4 系列专用，其他模型请留空）
+  # 该设置对 ai_analysis / ai_translation / ai_filter 全部生效
+  # false = 非思考模式：响应快、省 token，适合翻译/筛选等机械任务（推荐，可避免空响应/截断）
+  # true  = 思考模式：先推理再回答，更准但更慢更贵
+  # 留空  = 不发送 thinking 参数（兼容不支持该参数的模型）
+  thinking_mode: false
 
   # 额外参数（一般无需修改，删掉 # 号即可启用）
   # extra_params:
@@ -597,6 +604,11 @@ ai_translation:
 
   batch_size: 100                   # 每批发送给 AI 的标题数，超过此数量自动分批
   batch_interval: 2                 # 分批间隔（秒），避免触发 API 限流，0=不等待
+
+  # 空响应/不完整响应自动重试（AI 返回空或条数过少时自动重发该批）
+  # 应对 DeepSeek V4 等模型在思考模式/高峰期的间歇性空响应问题
+  max_empty_retries: 2              # 最大重试次数（0=不重试）
+  min_parse_ratio: 0.5              # 解析条数低于此比例（如 0.5=50%）视为不完整并触发重试
 
   # 翻译范围（display.regions 关闭的区域即使开启也不会翻译）
   scope:

@@ -38,6 +38,10 @@ class AIClient:
         self.timeout = config.get("TIMEOUT", 120)
         self.num_retries = config.get("NUM_RETRIES", 2)
         self.fallback_models = config.get("FALLBACK_MODELS", [])
+        self.extra_params = config.get("EXTRA_PARAMS", {})
+        # 思考模式控制（DeepSeek V4 系列专用）
+        # True=思考模式, False=非思考模式, None=不发送 thinking 参数（兼容其他模型）
+        self.thinking_mode = config.get("THINKING_MODE")
 
     def chat(
         self,
@@ -83,7 +87,22 @@ class AIClient:
         if self.fallback_models:
             params["fallbacks"] = self.fallback_models
 
-        # 合并其他额外参数
+        # 合并配置中的额外参数（extra_params，调用方 kwargs 优先级更高）
+        for key, value in self.extra_params.items():
+            if key not in params:
+                params[key] = value
+
+        # 思考模式控制（DeepSeek V4 系列专用，通过 extra_body 传递）
+        # 支持按调用覆盖：client.chat(messages, thinking_mode=True/False)
+        thinking_mode = kwargs.pop("thinking_mode", None)
+        if thinking_mode is None:
+            thinking_mode = self.thinking_mode
+        if thinking_mode is not None:
+            extra_body = dict(params.get("extra_body", {}) or {})
+            extra_body["thinking"] = {"type": "enabled" if thinking_mode else "disabled"}
+            params["extra_body"] = extra_body
+
+        # 合并其他额外参数（调用方 kwargs 覆盖默认配置）
         for key, value in kwargs.items():
             if key not in params:
                 params[key] = value

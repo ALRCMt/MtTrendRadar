@@ -271,6 +271,8 @@ def _load_ai_config(config_data: Dict) -> Dict:
         "NUM_RETRIES": ai_config.get("num_retries", 2),
         "FALLBACK_MODELS": ai_config.get("fallback_models", []),
         "EXTRA_PARAMS": ai_config.get("extra_params", {}),
+        # 思考模式控制（DeepSeek V4 系列专用）：True/False/None
+        "THINKING_MODE": ai_config.get("thinking_mode"),
     }
 
 
@@ -309,6 +311,9 @@ def _load_ai_translation_config(config_data: Dict) -> Dict:
             "RSS": scope.get("rss", True),
             "STANDALONE": scope.get("standalone", True),
         },
+        # 空响应/不完整响应自动重试
+        "MAX_EMPTY_RETRIES": trans_config.get("max_empty_retries", 2),
+        "MIN_PARSE_RATIO": trans_config.get("min_parse_ratio", 0.5),
     }
 
 

@@ -1,0 +1,32 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ===== 虚拟环境 =====
+.venv/
+venv/
+env/
+
+# ===== 构建产物 =====
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ===== 测试/覆盖率 =====
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ===== IDE / 编辑器 =====
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# ===== 运行输出（本地生成的数据，由远程存储管理）=====
+output/
+logs/

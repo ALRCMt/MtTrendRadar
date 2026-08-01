@@ -6,6 +6,7 @@ AI 翻译器模块
 基于 LiteLLM 统一接口，支持 100+ AI 提供商
 """
 
+import math
 import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
@@ -53,6 +54,12 @@ class AITranslator:
         self.enabled = translation_config.get("ENABLED", False)
         self.target_language = translation_config.get("LANGUAGE", "English")
         self.scope = translation_config.get("SCOPE", {"HOTLIST": True, "RSS": True, "STANDALONE": True})
+
+        # 空响应/不完整响应自动重试
+        # MAX_EMPTY_RETRIES: 最大重试次数（0=不重试）
+        # MIN_PARSE_RATIO: 解析条数低于该比例视为不完整（如 0.5=50%）并触发重试
+        self.max_empty_retries = translation_config.get("MAX_EMPTY_RETRIES", 2)
+        self.min_parse_ratio = translation_config.get("MIN_PARSE_RATIO", 0.5)
 
         # 创建 AI 客户端（基于 LiteLLM）
         self.client = AIClient(ai_config)
@@ -197,15 +204,38 @@ class AITranslator:
             else:
                 batch_result.prompt = user_prompt
 
-            # 调用 AI API
-            response = self._call_ai(user_prompt)
+            # 调用 AI API（空响应/不完整响应自动重试）
+            max_retries = self.max_empty_retries
+            min_ratio = self.min_parse_ratio
+            expected_count = len(non_empty_texts)
+            response = ""
+            translated_texts = []
+            raw_parsed_count = 0
 
-            # 记录 AI 原始响应
-            batch_result.raw_response = response
+            for attempt in range(max_retries + 1):
+                try:
+                    response = self._call_ai(user_prompt)
+                    # 记录 AI 原始响应（最后一次尝试的）
+                    batch_result.raw_response = response
 
-            # 解析批量翻译结果
-            translated_texts, raw_parsed_count = self._parse_batch_response(response, len(non_empty_texts))
-            batch_result.parsed_count = raw_parsed_count
+                    # 解析批量翻译结果
+                    translated_texts, raw_parsed_count = self._parse_batch_response(response, expected_count)
+                    batch_result.parsed_count = raw_parsed_count
+
+                    # 判断本次响应是否可接受：
+                    # 1. 解析条数 >= 期望条数 * min_ratio（向上取整，且至少 1 条）
+                    # 2. 已无重试机会则接受当前结果（避免无限重试）
+                    min_acceptable = max(1, math.ceil(expected_count * min_ratio))
+                    if raw_parsed_count >= min_acceptable or attempt >= max_retries:
+                        break
+
+                    # 响应不完整 → 重试
+                    print(f"[翻译] 批次响应不完整（{raw_parsed_count}/{expected_count} 条），正在重试 ({attempt+1}/{max_retries})...")
+
+                except Exception as e:
+                    if attempt >= max_retries:
+                        raise
+                    print(f"[翻译] 批次请求失败: {type(e).__name__}: {str(e)[:100]}，正在重试 ({attempt+1}/{max_retries})...")
 
             # 填充结果（跳过空翻译，避免用空字符串覆盖原始标题）
             for idx, translated in zip(non_empty_indices, translated_texts):
