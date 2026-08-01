@@ -46,6 +46,7 @@ class AIFilter:
         self.client = AIClient(ai_config)
         self.filter_config = filter_config
         self.batch_size = filter_config.get("BATCH_SIZE", 200)
+        self.max_empty_retries = filter_config.get("MAX_EMPTY_RETRIES", 2)
         self.get_time_func = get_time_func
         self.debug = debug
 
@@ -143,7 +144,7 @@ class AIFilter:
                 print(f"[{m['role']}]\n{m['content']}")
             print(f"[AI筛选][DEBUG] === Prompt 结束 ===")
 
-        max_empty_retries = 2  # 空响应额外重试次数（API成功但返回空内容）
+        max_empty_retries = self.max_empty_retries  # 空响应额外重试次数（API成功但返回空内容）
         for attempt in range(max_empty_retries + 1):
             try:
                 response = self.client.chat(messages)
@@ -239,7 +240,7 @@ class AIFilter:
                 print(f"[{m['role']}]\n{m['content']}")
             print(f"[AI筛选][DEBUG] === Prompt 结束 ===")
 
-        max_empty_retries = 2
+        max_empty_retries = self.max_empty_retries
         for attempt in range(max_empty_retries + 1):
             try:
                 response = self.client.chat(messages)
@@ -408,7 +409,7 @@ class AIFilter:
                     print(f"[{role}]\n{content}")
             print(f"[AI筛选][DEBUG] === Prompt 结束 (长度: {sum(len(m['content']) for m in messages)} 字符) ===")
 
-        max_empty_retries = 2
+        max_empty_retries = self.max_empty_retries
         for attempt in range(max_empty_retries + 1):
             try:
                 # 分类输出较多，增大 max_tokens 防止 JSON 被截断

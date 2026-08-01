@@ -109,58 +109,85 @@ MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization
 
 ### MCP Server 安全加固
 
-- `mcp_server/server.py`：默认监听 `0.0.0.0` → `127.0.0.1`；新增 `--token` 参数、`MCP_HTTP_TOKEN` 环境变量；加了纯 ASGI 的 `BearerAuthMiddleware`，请求头不对返回 401；启动时打印认证状态
-- `start-http.bat` / `start-http.sh`：默认 `--host 127.0.0.1 --port 3333`
-- `docker/Dockerfile.mcp`：补充注释，说明容器内绑定 0.0.0.0 是必要的，外部范围由 compose 的 `MCP_HOST` 控制
-- `docker/docker-compose.yml` / `docker-compose-build.yml`：MCP 服务环境变量加 `MCP_HTTP_TOKEN=${MCP_HTTP_TOKEN:-}`
-- `docker/.env`：加 `MCP_HTTP_TOKEN` 注释示例
+- `mcp_server/server.py`：
+  默认监听 `0.0.0.0` → `127.0.0.1`；  
+  新增 `--token` 参数、`MCP_HTTP_TOKEN` 环境变量；加了纯 ASGI 的 `BearerAuthMiddleware`，请求头不对返回 401；启动时打印认证状态
+- `start-http.bat` / `start-http.sh`：
+  默认 `--host 127.0.0.1 --port 3333`
+- `docker/Dockerfile.mcp`：
+  补充注释，说明容器内绑定 0.0.0.0 是必要的，外部范围由 compose 的 `MCP_HOST` 控制
+- `docker/docker-compose.yml` / `docker-compose-build.yml`：
+  MCP 服务环境变量加 `MCP_HTTP_TOKEN=${MCP_HTTP_TOKEN:-}`
+- `docker/.env`：
+  加 `MCP_HTTP_TOKEN` 注释示例
 
 ### AI 分析
 
-- **最低分阈值**：`filter_pipeline.py` 的 `convert_to_report_data()` 加 `analysis_min_score` 参数。分数低于 `min_score` 但 ≥ `analysis_min_score` 的条目标记 `is_analysis_only=True`，只供 AI 分析参考，不推送。`context.py` 和 `__main__.py`（新增 `_strip_analysis_only()` 剔除这些条目）配套改动
-- **DeepSeek V4 thinking**：`ai/client.py` 支持 `thinking_mode`，用 `extra_body={"thinking": {"type": "enabled"/"disabled"}}` 控制，同时支持 `extra_params` 合并
-- **空响应重试**：`ai/filter.py` 的 `extract_tags()` / `update_tags()` 加 `max_empty_retries=2` 重试；`ai/translator.py` 解析条数低于 `min_parse_ratio`（默认 0.5）视为不完整并重试，另加了 `_is_already_target_language()`，中文占比 ≥ 40% 就跳过翻译
-- **RSS 配额**：`ai/analyzer.py` 给 RSS 预留 `max(30, int(max_news * 0.2))` 的展示配额
+- **最低分阈值**：
+  `filter_pipeline.py` 的 `convert_to_report_data()` 加 `analysis_min_score` 参数。分数低于 `min_score` 但 ≥ `analysis_min_score` 的条目标记 `is_analysis_only=True`，只供 AI 分析参考，不推送。`context.py` 和 `__main__.py`（新增 `_strip_analysis_only()` 剔除这些条目）配套改动
+- **DeepSeek V4 thinking**：
+  `ai/client.py` 支持 `thinking_mode`，用 `extra_body={"thinking": {"type": "enabled"/"disabled"}}` 控制，同时支持 `extra_params` 合并
+- **空响应重试**：
+  `ai/filter.py` 的 `extract_tags()` / `update_tags()` 支持 `max_empty_retries` 重试（读配置 `ai_filter.max_empty_retries`，默认 2）；`ai/translator.py` 解析条数低于 `min_parse_ratio`（默认 0.5）视为不完整并重试
+- **目标语言预判**：
+  `ai/translator.py` 加 `_is_already_target_language()`：日文假名/韩文谚文占比 ≥ 5% 判定为日韩文送去翻译（避免密集汉字的日文漏翻）；纯中文（CJK 占比 ≥ 60%）跳过翻译
+- **RSS 配额**：
+  `ai/analyzer.py` 给 RSS 预留 `max(30, int(max_news * 0.2))` 的展示配额
 
 ### RSS / 爬虫
 
-- `crawler/rss/fetcher.py`：最多重试 4 次，随机退避
-- `crawler/fetcher.py`：`max_retries` 2 → 4
-- `filter_pipeline.py`：按 feed 单独限制条数（配置里加 `max_items`）；新增标题模糊去重 `_deduplicate_titles()`，包含关系或相似度 > 0.85 只保留最长的一条
-- `notification/dispatcher.py`：修了个 bug——RSS 新增条目（`rss_new_items`）原来会被 `display_regions.get("NEW_ITEMS", True)` 跳过翻译，导致 HTML 里出现未翻译内容，现在不会了
+- `crawler/rss/fetcher.py`：
+  最多重试 4 次，随机退避
+- `crawler/fetcher.py`：
+  `max_retries` 2 → 4
+- `filter_pipeline.py`：
+  按 feed 单独限制条数（配置里加 `max_items`）；  
+  新增标题模糊去重 `_deduplicate_titles()`，包含关系或相似度 > 0.85 只保留最长的一条
+- `notification/dispatcher.py`：
+  修了个 bug——RSS 新增条目（`rss_new_items`）原来会被 `display_regions.get("NEW_ITEMS", True)` 跳过翻译，导致 HTML 里出现未翻译内容，现在不会了
 
 ### HTML 报告
 
-- `report/html.py`：RSS 区加按关键词分组的 Tab 栏（含「全部」按钮，宽屏显示、竖屏隐藏）；独立展示区 Tab 改为控制外层 wrapper 显隐；RSS 新增区块由 `show_new_section`（`display.regions.new_items`）控制；
+- `report/html.py`：
+  RSS 区加按关键词分组的 Tab 栏（含「全部」按钮，宽屏显示、竖屏隐藏）；  
+  独立展示区 Tab 改为控制外层 wrapper 显隐；RSS 新增区块由 `show_new_section`（`display.regions.new_items`）控制
 
 ### CI / 调度
 
-- `.github/workflows/crawler.yml`：定时改为北京时间 6:00 / 10:30 / 19:30（原版每小时第 33 分钟）；`workflow_dispatch` 手动触发时注入 `SCHEDULE_PRESET=always_on`
+- `.github/workflows/crawler.yml`：
+  定时改为北京时间 6:00 / 10:30 / 19:30（原版每小时第 33 分钟）；  
+  `workflow_dispatch` 手动触发时注入 `SCHEDULE_PRESET=always_on`
 
 > 由于排队机制，Github Actions 自动执行有延迟，大概白天晚2h，晚上晚1h
 
 ### 文件结构
 
-
-- `config/config.yaml` 新增 `thinking_mode`、`max_empty_retries`、`min_parse_ratio`、`min_score`、RSS `max_items`
+- `config/config.yaml` 新增：`ai.thinking_mode`、`ai_filter.max_empty_retries`、`ai_translation.max_empty_retries` / `min_parse_ratio`、RSS feed 的 `max_items`（官方 `min_score` 默认 0.7，这里改成了 0.65）
 
 其余代码文件和官方 v6.10.0 一致
 
 ## 配置
 
-新增配置都在 `config/config.yaml`：
+新增配置都在 `config/config.yaml`（`thinking_mode` 在 `ai` 段，其余在各功能段）：
 
 ```yaml
 ai:
   thinking_mode: false          # DeepSeek V4 思考模式：false=快速 / true=推理 / 留空=不发送
-  max_empty_retries: 2          # AI 空响应最大重试次数
+
+ai_filter:
+  max_empty_retries: 2          # AI 筛选空响应重试次数（0=不重试）
+
+ai_translation:
+  max_empty_retries: 2          # 翻译空响应/不完整响应重试次数（0=不重试）
   min_parse_ratio: 0.5          # 解析条数低于该比例视为不完整并重试
-  min_score: 0.65               # 推送最低分阈值（0.0~1.0）
 
 rss:
-  - id: "example"
-    max_items: 12               # 该 feed 最多保留条数（0=不限制）
+  feeds:
+    - id: "example"
+      max_items: 12             # 该 feed 最多保留条数（0=不限制）
 ```
+
+（`ai_filter.min_score` 官方本来就有，默认 0.7，这里只是把默认值改成 0.65）
 
 ## License
 

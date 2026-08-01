@@ -329,6 +329,7 @@ def _load_ai_filter_config(config_data: Dict) -> Dict:
         "EXTRACT_PROMPT_FILE": ai_filter.get("extract_prompt_file", "extract_prompt.txt"),
         "UPDATE_TAGS_PROMPT_FILE": ai_filter.get("update_tags_prompt_file", "update_tags_prompt.txt"),
         "RECLASSIFY_THRESHOLD": ai_filter.get("reclassify_threshold", 0.6),
+        "MAX_EMPTY_RETRIES": ai_filter.get("max_empty_retries", 2),
         "MIN_SCORE": float(ai_filter.get("min_score", 0)),
     }
 

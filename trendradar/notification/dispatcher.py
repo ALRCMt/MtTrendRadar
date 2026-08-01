@@ -202,7 +202,9 @@ class NotificationDispatcher:
                     print(f"{batch_label} === AI 原始响应 ===")
                     print(result.raw_response)
                     print(f"{batch_label} === 响应结束 ===")
-                expected = len(batch_texts)
+                # 行数对比基准：实际发送给 AI 的条数（预过滤中文/空文本后），
+                # 而非原始批次大小 —— 否则中文标题被预过滤后必然"不匹配"造成误报
+                expected = result.sent_count if result.sent_count else len(batch_texts)
                 if result.parsed_count != expected:
                     print(f"{batch_label} ⚠️ 行数不匹配：期望 {expected} 条，AI 返回 {result.parsed_count} 条")
                 unchanged_count = 0

@@ -34,6 +34,7 @@ class BatchTranslationResult:
     prompt: str = ""                # debug: 发送给 AI 的完整 prompt
     raw_response: str = ""          # debug: AI 原始响应
     parsed_count: int = 0           # debug: AI 响应解析出的条目数
+    sent_count: int = 0             # debug: 实际发送给 AI 的条目数（预过滤后）
 
 
 class AITranslator:
@@ -189,6 +190,9 @@ class AITranslator:
         non_empty_indices = need_translate_indices
         non_empty_texts = need_translate_texts
 
+        # 记录实际发送给 AI 的条数（预过滤后），供上层 debug 对比
+        batch_result.sent_count = len(non_empty_texts)
+
         try:
             # 构建批量翻译内容（使用编号格式）
             batch_content = self._format_batch_content(non_empty_texts)
@@ -260,7 +264,11 @@ class AITranslator:
         """
         判断文本是否已为目标语言，避免不必要地调用翻译 API
 
-        当前仅对中文目标语言做 CJK 字符检测。
+        当前仅对中文目标语言做检测。
+        注意：CJK 统一表意文字（4E00-9FFF）同时覆盖中日韩汉字，
+        日文假名（3040-30FF）与韩文谚文（AC00-D7AF）不在其中。
+        若文本含较多日韩特有字符，即使汉字占比高也判定为需翻译，
+        避免日文/韩文被误判为中文而漏翻。
         """
         if self.target_language != "中文":
             return False
@@ -268,13 +276,28 @@ class AITranslator:
         if not text or not text.strip():
             return False
 
-        # 统计 CJK 统一表意文字（基本区 4E00-9FFF）
-        cjk_chars = len(re.findall(r'[\u4e00-\u9fff]', text))
         # 统计非空白字符总数
         non_space_chars = len(text.strip())
 
-        # 如果 CJK 字符占比 >= 40%，认为已为中文
-        return non_space_chars > 0 and (cjk_chars / non_space_chars) >= 0.4
+        # 日文假名（平假名 3040-309F + 片假名 30A0-30FF）是日文特有字符
+        kana_chars = len(re.findall(r'[\u3040-\u30ff]', text))
+        # 韩文谚文音节（AC00-D7AF）是韩文特有字符
+        hangul_chars = len(re.findall(r'[\uac00-\ud7af]', text))
+
+        # 假名/谚文占比 >= 5% → 判定为日文/韩文，需要翻译
+        # （中文文本几乎不含假名；日文即使汉字密集也必然带助词假名，
+        #   如"東京株式市場、過去最高値を更新"仅 1 个"を"也需识别）
+        if non_space_chars > 0:
+            if kana_chars / non_space_chars >= 0.05:
+                return False
+            if hangul_chars / non_space_chars >= 0.05:
+                return False
+
+        # 统计 CJK 统一表意文字（基本区 4E00-9FFF，含中日韩汉字）
+        cjk_chars = len(re.findall(r'[\u4e00-\u9fff]', text))
+
+        # 如果 CJK 字符占比 >= 60%，认为已为中文
+        return non_space_chars > 0 and (cjk_chars / non_space_chars) >= 0.6
 
     def _format_batch_content(self, texts: List[str]) -> str:
         """格式化批量翻译内容"""
