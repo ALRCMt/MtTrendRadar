@@ -4,6 +4,7 @@
 基于 [TrendRadar](https://github.com/sansan0/TrendRadar) v6.10.0 的修改版，自己加了点功能：AI 筛选增强、RSS 优化、MCP 安全加固
 
 和官方版的差异在[文末](#与官方-trendradar-的差异)
+官方文档：<https://trendradar.sandev.cc/zh/docs/quick-start/>
 
 ## 快速开始
 
