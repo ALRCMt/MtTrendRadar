@@ -124,9 +124,9 @@ presets:
     default:
       collect: true                # 采集数据（爬取热榜 + RSS）
       analyze: true              # 做 AI 分析（不节省 API 费用）
-      ai_mode: "current"           # AI 分析当前榜单
+      ai_mode: "daily"           # AI 分析当前榜单
       push: true                   # 有新内容就推送
-      report_mode: "current"   # 推送内容，重复
+      report_mode: "daily"   # 推送内容，重复
       min_score: 0.4           # 手动触发时可见弱信号趋势
       once:                        # 限制每个时间段内只执行一次
         analyze: false             #   不限制分析次数
@@ -414,7 +414,7 @@ custom:
                                    #   current       → 强制当前榜单
                                    #   incremental   → 强制增量模式
     push: false                    # 默认不推送，只有周日中午推送
-    report_mode: "daily"         # 默认使用当天汇总模式
+    report_mode: "current"         # 默认使用当天汇总模式
 
                                    
     # frequency_file: "general.txt"
