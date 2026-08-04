@@ -20,7 +20,7 @@ cd MtTrendRadar
 docker compose -f docker/docker-compose.yml up -d
 ```
 
-配置分工：功能开关改 `config/config.yaml`，关注内容改 `config/frequency_words.txt`，密钥（webhook、API Key、S3）改 `docker/.env`，环境变量 > config.yaml。
+配置分工：功能开关改 `config/config.yaml`，关注内容改 `config/frequency_words.txt`，密钥（webhook、API Key、S3）改 `docker/.env`，环境变量 > config.yaml
 
 注意点：
 
@@ -40,7 +40,7 @@ docker compose -f docker/docker-compose.yml up -d
 
 ### 方案三：本地部署（uv）
 
-原版说明：装 uv（自动管理 Python）→ clone → `uv sync` → 编辑 `config/config.yaml` → 运行。
+原版说明：装 uv（自动管理 Python）→ clone → `uv sync` → 编辑 `config/config.yaml` → 运行
 
 ```bash
 git clone https://github.com/ALRCMt/MtTrendRadar.git
@@ -49,7 +49,7 @@ uv sync
 uv run python -m trendradar
 ```
 
-Windows 可双击 `setup-windows.bat`，macOS 用 `bash setup-mac.sh`。
+Windows 可双击 `setup-windows.bat`，macOS 用 `bash setup-mac.sh`
 
 注意点：
 
@@ -100,9 +100,9 @@ curl -X POST http://127.0.0.1:3333/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize",...}'
 ```
 
-MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization: Bearer <token>` 填进 HTTP Headers 就行。
+MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization: Bearer <token>` 填进 HTTP Headers 就行
 
-只在本地用（默认 `127.0.0.1`）可以不配；只要 `--host 0.0.0.0` 对网络开放，就必须配。
+只在本地用（默认 `127.0.0.1`）可以不配；只要 `--host 0.0.0.0` 对网络开放，就必须配
 
 ## 与官方 TrendRadar 的差异
 
@@ -145,9 +145,9 @@ MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization
   `ai/analyzer.py` 给 RSS 预留 `max(30, int(max_news * 0.2))` 的展示配额
 
 - **AI 分析历史存储与参考**：  
-  新增 `ai_analysis.reference_history_days` 配置（默认 3，0=关闭）。开启后每次 AI 深度分析会把本次结果（5 大板块 + 独立展示区概括 + 日期/模式标注）存入数据库 `ai/YYYY-MM-DD.db`（同一天多次分析独立存多行，随 news/rss 一起走下载-合并-上传流程）；下一次深度分析会读取最近 N 天（含当天）的历史分析作为提示词中的 `{history_reference}` 参考，要求 AI 延续此前研判逻辑并对比新变化。  
-  存储层：`storage/ai_schema.sql`（`ai_analyses` 表）+ `sqlite_mixin.py` 的 `_save_ai_analysis_impl` / `_get_recent_ai_analyses_impl`，`base.py`/`local.py`/`remote.py`/`manager.py` 全链路支持（remote 自动下载/上传 `ai/` 库）。  
-  注意：参考历史会增加深度分析输入 token（约 N×2~4K token/天），请按需设置
+  新增 `ai_analysis.reference_history_days` 配置（默认 3，0=关闭）。开启后每次 AI 深度分析会把本次结果（5 大板块 + 独立展示区概括 + 日期/模式标注）存入数据库 `ai/YYYY-MM-DD.db`（同一天多次分析独立存多行，随 news/rss 一起走下载-合并-上传流程）；下一次深度分析会读取最近 N 天（含当天）的历史分析作为提示词中的 `{history_reference}` 参考，要求 AI 延续此前研判逻辑并对比新变化  
+  存储层：`storage/ai_schema.sql`（`ai_analyses` 表）+ `sqlite_mixin.py` 的 `_save_ai_analysis_impl` / `_get_recent_ai_analyses_impl`，`base.py`/`local.py`/`remote.py`/`manager.py` 全链路支持（remote 自动下载/上传 `ai/` 库）  
+  注意：参考历史会增加深度分析输入 token，请按需设置
 
 ### RSS / 爬虫
 
