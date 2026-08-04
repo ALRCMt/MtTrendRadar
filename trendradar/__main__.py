@@ -7,6 +7,7 @@ TrendRadar 主程序
 """
 
 import argparse
+import json
 import os
 import webbrowser
 from pathlib import Path
@@ -396,6 +397,22 @@ class NewsAnalyzer:
             if ai_mode != mode and (rss_items or standalone_data):
                 print(f"[AI] 独立分析模式（{ai_mode}）：RSS/独立展示区与推送模式（{mode}）不同源，本次分析仅聚焦热榜")
 
+            # 读取历史分析作为参考（reference_history_days > 0 时启用）
+            history_reference = ""
+            history_days = analysis_config.get("REFERENCE_HISTORY_DAYS", 0) or 0
+            if history_days > 0:
+                try:
+                    storage = self.ctx.get_storage_manager()
+                    records = storage.get_recent_ai_analyses(history_days)
+                    if records:
+                        history_reference = self._format_history_reference(records)
+                        print(f"[AI] 已加载 {len(records)} 条历史分析作为参考（最近 {history_days} 天）")
+                    else:
+                        print(f"[AI] 最近 {history_days} 天内无历史分析记录，跳过参考")
+                except Exception as e:
+                    print(f"[AI] 加载历史分析参考失败（忽略）: {e}")
+                    history_reference = ""
+
             result = analyzer.analyze(
                 stats=ai_stats,
                 rss_stats=ai_rss_stats,
@@ -404,6 +421,7 @@ class NewsAnalyzer:
                 platforms=platforms,
                 keywords=keywords,
                 standalone_data=ai_standalone,
+                history_reference=history_reference,
             )
 
             # 设置 AI 分析使用的模式
@@ -414,6 +432,18 @@ class NewsAnalyzer:
                     print(f"[AI] 分析完成（有警告: {result.error}）")
                 else:
                     print("[AI] 分析完成")
+
+                # 保存本次分析到历史库（供下次分析参考）
+                if history_days > 0:
+                    try:
+                        storage = self.ctx.get_storage_manager()
+                        saved = storage.save_ai_analysis(result)
+                        if saved:
+                            print("[AI] 本次分析已存入历史库（ai/）")
+                        else:
+                            print("[AI] 警告: 本次分析未能存入历史库")
+                    except Exception as e:
+                        print(f"[AI] 保存分析历史失败（忽略）: {e}")
 
                 # 记录 AI 分析
                 if schedule.once_analyze and schedule.period_key:
@@ -439,6 +469,53 @@ class NewsAnalyzer:
             print(f"[AI] 详细错误堆栈:", file=sys.stderr)
             traceback.print_exc(file=sys.stderr)
             return AIAnalysisResult(success=False, error=f"{error_type}: {error_msg}")
+
+    @staticmethod
+    def _format_history_reference(records: List[Dict]) -> str:
+        """
+        将历史分析记录格式化为参考文本，供 AI 分析提示词使用
+
+        Args:
+            records: 历史分析记录列表（analysis_date/created_at/report_mode/report_type/ai_mode
+                     及五个板块字段 + standalone_summaries JSON）
+
+        Returns:
+            str: 格式化后的参考文本（无记录时返回空字符串）
+        """
+        if not records:
+            return ""
+
+        sections = []
+        for i, rec in enumerate(records, start=1):
+            date_str = rec.get("analysis_date", "")
+            created = rec.get("created_at", "")
+            mode = rec.get("ai_mode") or rec.get("report_mode") or ""
+            rtype = rec.get("report_type", "")
+            mode_desc = f"模式:{mode}" if mode else ""
+            if rtype:
+                mode_desc = f"{mode_desc} ({rtype})" if mode_desc else f"({rtype})"
+
+            lines = [f"### {i}. 分析日期: {date_str} 时间: {created} {mode_desc}"]
+
+            field_map = [
+                ("core_trends", "核心趋势"),
+                ("sentiment_controversy", "情绪与争议"),
+                ("signals", "关键信号"),
+                ("rss_insights", "RSS洞察"),
+                ("outlook_strategy", "研判策略"),
+            ]
+            for field, label in field_map:
+                value = (rec.get(field) or "").strip()
+                if value:
+                    lines.append(f"- {label}: {value}")
+
+            standalone = rec.get("standalone_summaries") or {}
+            if isinstance(standalone, dict) and standalone:
+                lines.append(f"- 独立展示区概括: {json.dumps(standalone, ensure_ascii=False)}")
+
+            sections.append("\n".join(lines))
+
+        return "\n\n".join(sections)
 
     def _load_analysis_data(
         self,

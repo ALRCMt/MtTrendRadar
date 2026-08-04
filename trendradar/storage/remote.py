@@ -567,6 +567,25 @@ class RemoteStorageBackend(SQLiteStorageMixin, StorageBackend):
     def get_all_rss_ids(self, date=None):
         return self._get_all_rss_ids_impl(date)
 
+    def save_ai_analysis(self, result, date=None):
+        """
+        保存 AI 深度分析结果到远程 ai 数据库
+
+        流程：下载现有 ai 库 → 追加记录 → 上传回远程存储
+        """
+        ok = self._save_ai_analysis_impl(result, date)
+        if not ok:
+            return False
+        if self._upload_sqlite(date, db_type="ai"):
+            print(f"[远程存储] AI 分析历史已同步: ai/{self._format_date_folder(date)}.db")
+            return True
+        print(f"[远程存储] AI 分析历史上传失败")
+        return False
+
+    def get_recent_ai_analyses(self, days=3, date=None):
+        """读取最近 N 天的 AI 深度分析记录（自动下载对应日期的 ai 库）"""
+        return self._get_recent_ai_analyses_impl(days, date)
+
     # ========================================
     # 远程特有功能：TXT/HTML 快照（临时目录）
     # ========================================

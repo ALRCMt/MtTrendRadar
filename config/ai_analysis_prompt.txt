@@ -17,6 +17,7 @@
 #   {news_content}        - 热榜新闻内容
 #   {rss_content}         - RSS 订阅内容 (需开启 ai_analysis.include_rss)
 #   {standalone_content}  - 独立展示区数据 (需开启 ai_analysis.include_standalone)
+#   {history_reference}   - 历史分析参考 (需开启 ai_analysis.reference_history_days > 0，无历史时为空)
 #
 # ═══════════════════════════════════════════════════════════════
 
@@ -154,6 +155,10 @@
 
 ## 匹配关键词
 {keywords}
+
+## 历史分析参考
+以下为最近几次 AI 深度分析的历史结果（按时间从新到旧排列，含日期与模式标注）。请延续其中的研判逻辑，重点识别与本次数据相比的变化（新出现的热点、消退的旧热点、持续发酵中的趋势、此前判断的兑现或证伪），并将对比结论融入各板块分析，避免重复复述历史内容：
+{history_reference}
 
 ## 热榜新闻
 {news_content}

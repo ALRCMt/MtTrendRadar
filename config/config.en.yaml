@@ -432,6 +432,12 @@ ai_analysis:
                                     # true = full trajectory (e.g. 1(09:30)→2(10:00)); more accurate but costs 0.5~1x more tokens
                                     # false = simplified format (rank range + occurrence count); cheaper
 
+  reference_history_days: 3         # AI deep-analysis history reference window (unit: days)
+                                    # 0 = history reference disabled (default)
+                                    # N = read AI analysis results from the last N days as reference (stored under ai/ in the DB)
+                                    # Multiple analyses on the same day are saved independently and all referenced
+                                    # Note: referencing history increases input tokens (~N*2-4K tokens/day), set as needed
+
 
 
 

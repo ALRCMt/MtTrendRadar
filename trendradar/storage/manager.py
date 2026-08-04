@@ -367,6 +367,14 @@ class StorageManager:
         """获取所有 RSS ID 和标题"""
         return self.get_backend().get_all_rss_ids(date)
 
+    def save_ai_analysis(self, result, date=None) -> bool:
+        """保存 AI 深度分析结果到历史库（ai/ 数据库）"""
+        return self.get_backend().save_ai_analysis(result, date)
+
+    def get_recent_ai_analyses(self, days: int = 3, date: Optional[str] = None) -> list:
+        """读取最近 N 天（含当天）的 AI 深度分析记录，按时间倒序"""
+        return self.get_backend().get_recent_ai_analyses(days, date)
+
 
 
 def get_storage_manager(

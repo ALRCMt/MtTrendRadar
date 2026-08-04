@@ -5,9 +5,10 @@ SQLite 存储 Mixin
 提供共用的 SQLite 数据库操作逻辑，供 LocalStorageBackend 和 RemoteStorageBackend 复用。
 """
 
+import json
 import sqlite3
 from abc import abstractmethod
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -59,13 +60,15 @@ class SQLiteStorageMixin:
         获取 schema.sql 文件路径
 
         Args:
-            db_type: 数据库类型 ("news" 或 "rss")
+            db_type: 数据库类型 ("news"、"rss" 或 "ai")
 
         Returns:
             schema 文件路径
         """
         if db_type == "rss":
             return Path(__file__).parent / "rss_schema.sql"
+        if db_type == "ai":
+            return Path(__file__).parent / "ai_schema.sql"
         return Path(__file__).parent / "schema.sql"
 
     def _get_ai_filter_schema_path(self) -> Path:
@@ -1763,3 +1766,106 @@ class SQLiteStorageMixin:
         except Exception as e:
             print(f"[AI筛选] 获取 RSS 列表失败: {e}")
             return []
+
+    # ========================================
+    # AI 深度分析历史存储
+    # ========================================
+
+    def _save_ai_analysis_impl(self, result: Any, date: Optional[str] = None) -> bool:
+        """
+        保存 AI 深度分析结果到 ai 数据库
+
+        组织方式：ai/YYYY-MM-DD.db，同一天多次分析追加多行（按 created_at 区分）。
+
+        Args:
+            result: AIAnalysisResult 对象
+            date: 日期字符串，默认为今天
+
+        Returns:
+            是否保存成功
+        """
+        try:
+            date_str = self._format_date_folder(date)
+            conn = self._get_connection(date_str, db_type="ai")
+            created_at = self._get_configured_time().strftime("%Y-%m-%d %H:%M:%S")
+
+            standalone_json = json.dumps(
+                getattr(result, "standalone_summaries", {}) or {},
+                ensure_ascii=False,
+            )
+
+            conn.execute(
+                """INSERT INTO ai_analyses
+                   (analysis_date, created_at, report_mode, report_type, ai_mode,
+                    core_trends, sentiment_controversy, signals, rss_insights, outlook_strategy,
+                    standalone_summaries, total_news, hotlist_count, rss_count,
+                    analyzed_news, max_news_limit)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    date_str,
+                    created_at,
+                    getattr(result, "report_mode", ""),
+                    getattr(result, "report_type", ""),
+                    getattr(result, "ai_mode", ""),
+                    getattr(result, "core_trends", ""),
+                    getattr(result, "sentiment_controversy", ""),
+                    getattr(result, "signals", ""),
+                    getattr(result, "rss_insights", ""),
+                    getattr(result, "outlook_strategy", ""),
+                    standalone_json,
+                    getattr(result, "total_news", 0) or 0,
+                    getattr(result, "hotlist_count", 0) or 0,
+                    getattr(result, "rss_count", 0) or 0,
+                    getattr(result, "analyzed_news", 0) or 0,
+                    getattr(result, "max_news_limit", 0) or 0,
+                )
+            )
+            conn.commit()
+            return True
+        except Exception as e:
+            print(f"[AI历史] 保存分析记录失败: {e}")
+            return False
+
+    def _get_recent_ai_analyses_impl(self, days: int = 3, date: Optional[str] = None) -> List[Dict[str, Any]]:
+        """
+        读取最近 N 天（含当天）的 AI 深度分析记录，按时间倒序
+
+        Args:
+            days: 读取天数（含当天），<=0 返回空列表
+            date: 基准日期字符串（YYYY-MM-DD），默认为今天
+
+        Returns:
+            分析记录列表，每条为字典（standalone_summaries 已解析为 dict）
+        """
+        if days <= 0:
+            return []
+
+        base_date = self._get_configured_time()
+        if date:
+            try:
+                base_date = datetime.strptime(date, "%Y-%m-%d")
+            except Exception:
+                pass
+
+        results: List[Dict[str, Any]] = []
+        for i in range(days):
+            target = base_date - timedelta(days=i)
+            date_str = target.strftime("%Y-%m-%d")
+            try:
+                conn = self._get_connection(date_str, db_type="ai")
+                cursor = conn.execute(
+                    "SELECT * FROM ai_analyses WHERE analysis_date = ? ORDER BY created_at DESC",
+                    (date_str,),
+                )
+                for row in cursor.fetchall():
+                    item = dict(row)
+                    try:
+                        item["standalone_summaries"] = json.loads(
+                            item.get("standalone_summaries") or "{}"
+                        )
+                    except Exception:
+                        item["standalone_summaries"] = {}
+                    results.append(item)
+            except Exception as e:
+                print(f"[AI历史] 读取 {date_str} 分析记录失败: {e}")
+        return results

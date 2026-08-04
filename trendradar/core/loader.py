@@ -291,6 +291,8 @@ def _load_ai_analysis_config(config_data: Dict) -> Dict:
         "INCLUDE_RSS": ai_config.get("include_rss", True),
         "INCLUDE_RANK_TIMELINE": ai_config.get("include_rank_timeline", False),
         "INCLUDE_STANDALONE": ai_config.get("include_standalone", False),
+        # 参考历史分析的天数（0=关闭参考，1=仅当天，3=最近 3 天）
+        "REFERENCE_HISTORY_DAYS": ai_config.get("reference_history_days", 0),
     }
 
 

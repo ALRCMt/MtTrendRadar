@@ -41,6 +41,8 @@ class AIAnalysisResult:
     rss_analyzed: int = 0               # RSS 实际分析数
     standalone_analyzed: int = 0        # 独立展示区实际分析数
     ai_mode: str = ""                    # AI 分析使用的模式 (daily/current/incremental)
+    report_mode: str = ""                # 推送报告模式 (与 ai_mode 可能不同)
+    report_type: str = ""                # 报告类型描述
     include_rss: bool = True             # 是否启用 RSS 分析
     include_standalone: bool = False     # 是否启用独立展示区分析
 
@@ -109,6 +111,7 @@ class AIAnalyzer:
         platforms: Optional[List[str]] = None,
         keywords: Optional[List[str]] = None,
         standalone_data: Optional[Dict] = None,
+        history_reference: str = "",
     ) -> AIAnalysisResult:
         """
         执行 AI 分析
@@ -120,6 +123,8 @@ class AIAnalyzer:
             report_type: 报告类型
             platforms: 平台列表
             keywords: 关键词列表
+            standalone_data: 独立展示区数据
+            history_reference: 历史分析参考内容（最近几天的分析结果文本，空字符串表示无）
 
         Returns:
             AIAnalysisResult: 分析结果
@@ -191,6 +196,9 @@ class AIAnalyzer:
             standalone_content, standalone_count = self._prepare_standalone_content(standalone_data)
         user_prompt = user_prompt.replace("{standalone_content}", standalone_content)
 
+        # 注入历史分析参考（无历史时替换为空，避免占位符残留）
+        user_prompt = user_prompt.replace("{history_reference}", history_reference or "")
+
         if self.debug:
             print("\n" + "=" * 80)
             print("[AI 调试] 发送给 AI 的完整提示词")
@@ -237,6 +245,8 @@ class AIAnalyzer:
             result.max_news_limit = self.max_news
             result.include_rss = self.include_rss
             result.include_standalone = self.include_standalone
+            result.report_mode = report_mode
+            result.report_type = report_type
             return result
         except Exception as e:
             error_type = type(e).__name__

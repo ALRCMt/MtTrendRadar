@@ -144,6 +144,11 @@ MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization
 - **RSS 配额**：  
   `ai/analyzer.py` 给 RSS 预留 `max(30, int(max_news * 0.2))` 的展示配额
 
+- **AI 分析历史存储与参考**：  
+  新增 `ai_analysis.reference_history_days` 配置（默认 3，0=关闭）。开启后每次 AI 深度分析会把本次结果（5 大板块 + 独立展示区概括 + 日期/模式标注）存入数据库 `ai/YYYY-MM-DD.db`（同一天多次分析独立存多行，随 news/rss 一起走下载-合并-上传流程）；下一次深度分析会读取最近 N 天（含当天）的历史分析作为提示词中的 `{history_reference}` 参考，要求 AI 延续此前研判逻辑并对比新变化。  
+  存储层：`storage/ai_schema.sql`（`ai_analyses` 表）+ `sqlite_mixin.py` 的 `_save_ai_analysis_impl` / `_get_recent_ai_analyses_impl`，`base.py`/`local.py`/`remote.py`/`manager.py` 全链路支持（remote 自动下载/上传 `ai/` 库）。  
+  注意：参考历史会增加深度分析输入 token（约 N×2~4K token/天），请按需设置
+
 ### RSS / 爬虫
 
 - **crawler/rss/fetcher.py**：  
@@ -163,7 +168,8 @@ MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization
 
 - **report/html.py**：  
   RSS 区加按关键词分组的 Tab 栏（含「全部」按钮，宽屏显示、竖屏隐藏）；  
-  独立展示区 Tab 改为控制外层 wrapper 显隐；RSS 新增区块由 `show_new_section`（`display.regions.new_items`）控制
+  独立展示区 Tab 改为控制外层 wrapper 显隐；  
+  RSS 新增区块由 `show_new_section`（`display.regions.new_items`）控制
 
 ### CI / 调度
 

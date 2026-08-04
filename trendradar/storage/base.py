@@ -526,6 +526,36 @@ class StorageBackend(ABC):
     def get_all_rss_ids(self, date: Optional[str] = None) -> List[Dict]:
         return []
 
+    # === AI 深度分析历史存储 ===
+
+    def save_ai_analysis(self, result: Any, date: Optional[str] = None) -> bool:
+        """
+        保存 AI 深度分析结果到历史库
+
+        同一天多次分析通过追加多行合并，按 created_at 区分。
+
+        Args:
+            result: AIAnalysisResult 对象
+            date: 日期字符串，默认为今天
+
+        Returns:
+            是否保存成功
+        """
+        return False
+
+    def get_recent_ai_analyses(self, days: int = 3, date: Optional[str] = None) -> List[Dict]:
+        """
+        读取最近 N 天（含当天）的 AI 深度分析记录，按时间倒序
+
+        Args:
+            days: 读取天数（含当天），<=0 返回空列表
+            date: 基准日期字符串（YYYY-MM-DD），默认为今天
+
+        Returns:
+            分析记录列表
+        """
+        return []
+
 
 def convert_crawl_results_to_news_data(
     results: Dict[str, Dict],
