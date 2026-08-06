@@ -267,6 +267,12 @@ rss:
     - id: "guokr"  
       name: "工劳网"
       url: "https://search.laborinfocn2.com/rss.xml"
+    - id: "guokr"  
+      name: "国际共产主义同盟"
+      url: "https://iclfi.org/zh/rss.xml"
+    - id: "guokr"  
+      name: "乌有之乡"
+      url: "hhttps://www.wyzxwk.com/e/web/?type=rss2&classid=0"    
     #  max_items: 9
     # ─────────────────────────────────────────────────
     # 国际权威通讯社/媒体（全球视野）
