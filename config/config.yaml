@@ -270,7 +270,7 @@ rss:
     - id: "guokr"  
       name: "国际共产主义同盟"
       url: "https://iclfi.org/zh/rss.xml"
-    - id: "guokr"  
+    - id: "wyzx"  
       name: "乌有之乡"
       url: "hhttps://www.wyzxwk.com/e/web/?type=rss2&classid=0"    
     #  max_items: 9
@@ -405,7 +405,7 @@ display:
   # 推送展示由 regions.standalone 控制，AI 分析由 ai_analysis.include_standalone 控制
   standalone:
     platforms: []     # 热榜平台 ID 列表（如 ["zhihu", "weibo"]）
-    rss_feeds: ["bilibili-pop","yihuo","xz", "guokr", "ruanyifeng", "microcomputer", "2xnz", "ark","xuanli", "fb", "zbh", "yhp", "unclechen", "xkrb", "guokr"]           # RSS 源 ID 列表（如 ["hacker-news"]）
+    rss_feeds: ["bilibili-pop","yihuo","xz", "guokr","wyzx", "ruanyifeng", "microcomputer", "2xnz", "ark","xuanli", "fb", "zbh", "yhp", "unclechen", "xkrb"]           # RSS 源 ID 列表（如 ["hacker-news"]）
     max_items: 12                                # 每个源最多展示条数（0=不限制）
 
 
