@@ -272,7 +272,7 @@ rss:
       url: "https://iclfi.org/zh/rss.xml"
     - id: "wyzx"  
       name: "乌有之乡"
-      url: "hhttps://www.wyzxwk.com/e/web/?type=rss2&classid=0"    
+      url: "https://www.wyzxwk.com/e/web/?type=rss2&classid=0"    
     #  max_items: 9
     # ─────────────────────────────────────────────────
     # 国际权威通讯社/媒体（全球视野）
