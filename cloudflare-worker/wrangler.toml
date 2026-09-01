@@ -1,0 +1,39 @@
+# ============================================================================
+# TrendRadar 定时触发 Worker
+#
+# 作用：GitHub Actions 自带的 cron 调度不稳定（排队延迟可达数小时），
+#       改用 Cloudflare Worker 的 Cron Trigger 准点触发 workflow_dispatch。
+#
+# 部署：
+#   1. 安装 wrangler:  npm install -g wrangler
+#   2. 登录:          wrangler login
+#   3. 创建 GitHub PAT（需 workflow 权限）并写入 secret:
+#        wrangler secret put GITHUB_TOKEN
+#   4. 发布:          wrangler deploy
+#   5. 本地测试:      wrangler dev（浏览器访问 /trigger 立即触发一次）
+#
+# 定时（所有 cron 均为 UTC，Cloudflare 不支持时区参数）：
+#   北京时间 00:00 = UTC 16:00
+#   北京时间 06:00 = UTC 22:00
+#   北京时间 12:00 = UTC 04:00
+#   北京时间 18:00 = UTC 10:00
+#
+# 4 个时间点合并成 1 条 cron（逗号列表），只占用免费计划 1/3 的 Trigger 额度。
+# ============================================================================
+name = "trendradar-trigger"
+main = "src/index.js"
+compatibility_date = "2024-11-01"
+
+[triggers]
+crons = ["0 4,10,16,22 * * *"]
+
+[vars]
+# GitHub 仓库信息（触发目标）
+GITHUB_OWNER = "ALRCMt"
+GITHUB_REPO = "MtTrendRadar"
+GITHUB_WORKFLOW = "crawler.yml"
+GITHUB_REF = "master"
+
+# 传给 workflow_dispatch 的 preset（需与 config/config.yaml 的 schedule.preset 一致）。
+# 留空则走 workflow 里的默认逻辑（手动触发=always_on）。
+GITHUB_PRESET = "custom"

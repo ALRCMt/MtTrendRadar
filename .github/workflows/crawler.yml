@@ -1,49 +1,39 @@
 name: Get Hot News
 
 on:
-  schedule:
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    # ⚠️ 试用版说明 / Trial Mode
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    #
-    # 🔄 运行机制 / How it works:
-    #    - 每个周期为 7 天，届时自动停止
-    #    - 运行 "Check In" 会重置周期（重新开始 7 天倒计时，而非累加）
-    #    - Each cycle is 7 days, then auto-stops
-    #    - "Check In" resets the cycle (restarts 7-day countdown, not cumulative)
-    #
-    # 💡 设计初衷 / Why this design:
-    #    如果 7 天都忘了签到，或许这些资讯对你来说并非刚需
-    #    适时的暂停，能帮你从信息流中抽离，给大脑留出喘息的空间
-    #    If you forget for 7 days, maybe you don't really need it
-    #    A timely pause helps you detach from the stream and gives your mind space
-    #
-    # 🙏 珍惜资源 / Respect shared resources:
-    #    GitHub Actions 是平台提供的公共资源，每次运行都会消耗算力
-    #    签到机制确保资源分配给真正需要的用户，感谢你的理解与配合
-    #    GitHub Actions is a shared public resource provided by the platform
-    #    Check-in ensures resources go to those who truly need it — thank you
-    #
-    # 🚀 长期使用请部署 Docker 版本 / For long-term use, deploy Docker version
-    #
-    # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-    #
-    # 📝 自定义：北京时间 6:00 / 12:00 / 19:30 / 0:00 各跑一次
-    #    - "0 22,4,16 * * *" → 06:00(UTC22) / 12:00(UTC04) / 00:00(UTC16)
-    #    - "30 11 * * *"     → 19:30(UTC11:30)
-    #
-    - cron: "0 21 * * *"     # 06:00 北京1h
-   # - cron: "30 21 * * *"    # 06:30 北京
-    - cron: "30 0 * * *"     # 10:30 北京  提前2h        
-    #- cron: "0 2 * * *"     # 11:00 北京
-    #- cron: "30 2 * * *"    # 11:30 北京
-    #- cron: "0 15 * * *"    # 00:00 北京1h
-    #- cron: "30 15 * * *"   # 00:30 北京
-    - cron: "30 8 * * *"    # 19:30 北京 提前3h — 晚间分析
-    #- cron: "30 11 * * *"   # 19:30 北京
-   # - cron: "0 12 * * *"    # 20:00 北京
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # ⚠️ 定时触发已迁移到 Cloudflare Worker（cloudflare-worker/ 目录）
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  #
+  # GitHub Actions 自带的 cron 调度不稳定（排队延迟可达数小时，提前 2~3h 仍会晚点），
+  # 改为由 Cloudflare Worker 的 Cron Trigger 准点调用本 workflow 的 workflow_dispatch。
+  #
+  # 定时（北京时间，见 cloudflare-worker/wrangler.toml）：
+  #   00:00 / 06:00 / 12:00 / 18:00 各触发一次
+  #   周一~周六 18:00 触发 → 晚间汇总推送
+  #   周日 06:00 触发 → 早间推送
+  #   其余触发点 → 仅静默采集
+  #
+  # 部署步骤见 cloudflare-worker/README.md。
+  # 如需恢复 GitHub 自带定时，取消下面注释（时间均为 UTC）：
+  # schedule:
+  #   - cron: "0 4,10,16,22 * * *"    # 12:00 / 18:00 / 00:00 / 06:00 北京
+  #
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # 🔄 签到机制 / Check-in (Trial Mode)
+  #    每个周期为 40 天，届时自动停止；运行 "Check In" 会重置周期（重新开始倒计时，而非累加）
+  #    如果 40 天都忘了签到，或许这些资讯对你来说并非刚需——适时的暂停，给大脑留出喘息的空间
+  #    GitHub Actions 是平台公共资源，签到机制确保资源分配给真正需要的用户
+  #    长期使用请部署 Docker 版本
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
   workflow_dispatch:
+    inputs:
+      preset:
+        description: '时间线预设：custom=自定义时间线（推荐） / always_on=全天候 / 留空=config.yaml 的 schedule.preset'
+        required: false
+        type: string
+        default: 'custom'
 
 concurrency:
   group: crawler-${{ github.ref_name }}
@@ -173,7 +163,7 @@ jobs:
           S3_ENDPOINT_URL: ${{ secrets.S3_ENDPOINT_URL }}
           S3_REGION: ${{ secrets.S3_REGION }}
           GITHUB_ACTIONS: true
-          SCHEDULE_PRESET: ${{ github.event_name == 'workflow_dispatch' && 'always_on' || '' }}
+          SCHEDULE_PRESET: ${{ inputs.preset || '' }}
         run: uv run python -m trendradar
 
       # --------------------------------------------------------------------------------

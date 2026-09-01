@@ -42,9 +42,21 @@ Use this template 建仓库 → `Settings` > `Secrets and variables` > `Actions`
 
 注意点：
 
-- 定时为北京时间 6:00 / 10:30 / 19:30（官方为每小时第 33 分钟），改时间编辑 `.github/workflows/crawler.yml` 的 cron
+- 定时为北京时间 0:00 / 6:00 / 12:00 / 18:00（官方为每小时第 33 分钟），默认由 Cloudflare Worker 准点触发（见下节）
+- 也可改 `.github/workflows/crawler.yml` 里被注释的 `schedule:` 恢复 GitHub 自带定时（有排队延迟，需自行提前补偿）
 
-> GitHub Actions 有排队延迟：白天约晚 2h，晚上约晚 1h
+### 方案二.5：Cloudflare Worker 定时触发（推荐）
+
+GitHub Actions 自带 cron 排队延迟严重（实测提前 2~3h 仍会晚点），本版把定时触发迁到 Cloudflare Worker：
+
+```bash
+cd cloudflare-worker
+npx wrangler login
+npx wrangler secret put GITHUB_TOKEN   # 需 workflow 权限的 PAT
+npx wrangler deploy
+```
+
+部署后按北京时间 0:00 / 6:00 / 12:00 / 18:00 准点触发 `crawler.yml`（周一~周六 18:00 晚间推送、周日 6:00 早间推送，其余仅静默采集），详见 [`cloudflare-worker/README.md`](cloudflare-worker/README.md)。
 
 ### 方案三：本地部署（uv）
 
@@ -140,10 +152,8 @@ MCP 客户端（Cursor、Claude Desktop、Cherry Studio 等）把 `Authorization
 
 ### 调度
 
-- 定时从官方每小时改为北京时间 6:00 / 10:30 / 19:30
-- `workflow_dispatch` 手动触发时注入 `SCHEDULE_PRESET=always_on`
-
-> GitHub Actions 有排队延迟：白天约晚 2h，晚上约晚 1h
+- 定时从官方每小时改为北京时间 0:00 / 6:00 / 12:00 / 18:00，并改用 Cloudflare Worker 准点触发（`workflow_dispatch` + `preset` 参数），GitHub Actions 自带 cron 已注释；推送行为由 `config/timeline.yaml` 的 `custom` 预设决定（周一~周六 18:00 晚间推送、周日 6:00 早间推送）
+- `workflow_dispatch` 支持 `preset` 输入：CF Worker 定时触发默认带 `custom`（走 `config.yaml` 的 `schedule.preset`），手动触发可选 `always_on` 全天候跑一次
 
 其余代码文件与官方 v6.10.0 一致。
 

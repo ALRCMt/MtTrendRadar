@@ -457,27 +457,27 @@ custom:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   periods:
 
-    evening_analysis:
-      name: "晚间分析"
-      start: "16:30"
-      end: "20:30"
-      analyze: true                # 晚上 8 点进行汇总分析
+    evening_push:
+      name: "晚间推送"
+      start: "16:00"
+      end: "22:00"      # 覆盖每天 18:00 的触发点（留缓冲，即使有几分钟延迟也能命中）
+      analyze: true                # 晚间做汇总分析
       ai_mode: "daily"           # AI 分析全天内容
-      push: true                   #  改为推送，每晚推送当天汇总
+      push: true                   # 每晚推送当天汇总
       report_mode: "daily"       # 当日全部新闻汇总
       min_score: 0.4             # 弱信号阈值：让 AI 分析能看到更低分的条目发现趋势
       once:
         analyze: true              # 本时间段内只分析一次
         push: true
 
-    sunday_push:
-      name: "周日中午推送"
-      start: "08:30"
-      end: "12:00"
+    sunday_morning:
+      name: "周日早间推送"
+      start: "04:00"
+      end: "09:00"      # 覆盖周日 06:00 的触发点
       collect: true                # 仍然采集数据
       analyze: true                # 同步分析，确保推送结果为最新汇总
-      ai_mode: "current"           # 周日推送当天/最近内容的汇总
-      push: true                   # 仅在周日中午推送
+      ai_mode: "current"           # 周日推送最近内容的汇总
+      push: true                   # 仅在周日早间推送
       report_mode: "daily"       # 当日全部新闻汇总
       once:
         analyze: true              # 本时间段内只分析一次
@@ -493,9 +493,9 @@ custom:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   day_plans:
     weekday:
-      periods: ["evening_analysis"]
+      periods: ["evening_push"]    # 周一~周六：18:00 触发 → 晚间推送
     sunday:
-      periods: ["sunday_push"]
+      periods: ["sunday_morning"]  # 周日：06:00 触发 → 早间推送
 
 
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
