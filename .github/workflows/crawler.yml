@@ -30,10 +30,10 @@ on:
   workflow_dispatch:
     inputs:
       preset:
-        description: '时间线预设：custom=自定义时间线（推荐） / always_on=全天候 / 留空=config.yaml 的 schedule.preset'
+        description: '时间线预设：手动运行默认 always_on；也可选 custom=自定义时间线，留空则使用 config.yaml 的 schedule.preset'
         required: false
         type: string
-        default: 'custom'
+        default: 'always_on'
 
 concurrency:
   group: crawler-${{ github.ref_name }}

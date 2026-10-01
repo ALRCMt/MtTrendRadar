@@ -119,7 +119,12 @@ class RSSFetcher:
                     print(f"[RSS] {feed.name}: {error}")
                     return [], error
 
-        parsed_items = self.parser.parse(response.text, feed.url)
+        try:
+            parsed_items = self.parser.parse(response.text, feed.url)
+        except Exception as e:
+            error = f"RSS 解析失败: {e}"
+            print(f"[RSS] {feed.name}: {error}")
+            return [], error
 
         # 限制条目数量（0=不限制）
         if feed.max_items > 0:

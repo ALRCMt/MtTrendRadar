@@ -1182,8 +1182,8 @@ class NewsAnalyzer:
                 # 处理 RSS 数据（按模式过滤）并返回用于合并推送
                 return self._process_rss_data_by_mode(rss_data)
             else:
-                print(f"[RSS] 数据保存失败")
-                return None, None, None, set()
+                print("[RSS] 数据保存失败，使用本次抓取的数据继续生成报告")
+                return self._process_rss_data_by_mode(rss_data, use_current_data=True)
 
         except ImportError as e:
             print(f"[RSS] 缺少依赖: {e}")
@@ -1193,7 +1193,9 @@ class NewsAnalyzer:
             print(f"[RSS] 抓取失败: {e}")
             return None, None, None, set()
 
-    def _process_rss_data_by_mode(self, rss_data) -> Tuple[Optional[List[Dict]], Optional[List[Dict]], Optional[List[Dict]], set]:
+    def _process_rss_data_by_mode(
+        self, rss_data, use_current_data: bool = False
+    ) -> Tuple[Optional[List[Dict]], Optional[List[Dict]], Optional[List[Dict]], set]:
         """
         按报告模式处理 RSS 数据，返回与热榜相同格式的统计结构
 
@@ -1234,7 +1236,9 @@ class NewsAnalyzer:
 
         # 1. 首先获取原始条目（用于独立展示区，不受 display.regions.rss 影响）
         # 根据模式获取原始条目
-        if self.report_mode == "incremental":
+        if use_current_data:
+            raw_rss_items = self._convert_rss_items_to_list(rss_data.items, rss_data.id_to_name)
+        elif self.report_mode == "incremental":
             new_items_dict = self.storage_manager.detect_new_rss_items(rss_data)
             if new_items_dict:
                 raw_rss_items = self._convert_rss_items_to_list(new_items_dict, rss_data.id_to_name)
@@ -1252,7 +1256,9 @@ class NewsAnalyzer:
             return None, None, raw_rss_items, rss_new_urls
 
         # 2. 获取新增条目（用于统计）
-        new_items_dict = self.storage_manager.detect_new_rss_items(rss_data)
+        new_items_dict = (
+            {} if use_current_data else self.storage_manager.detect_new_rss_items(rss_data)
+        )
         new_items_list = None
         if new_items_dict:
             new_items_list = self._convert_rss_items_to_list(new_items_dict, rss_data.id_to_name)
