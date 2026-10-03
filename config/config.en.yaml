@@ -355,7 +355,7 @@ storage:
 ai:
   # LiteLLM model format: provider/model-name
   # Examples:
-  #   - deepseek/deepseek-v4-flash (DeepSeek; cheap and sufficient, recommended)
+  #   - deepseek/deepseek-flash (DeepSeek V4.1 Flash, recommended)
   #   - deepseek/deepseek-v4-pro
   #   - openai/gpt-4o (OpenAI)
   #   - gemini/gemini-2.5-flash (Google Gemini)
@@ -363,7 +363,7 @@ ai:
   #   - ollama/llama3 (local Ollama)
   # Full list: https://docs.litellm.ai/docs/providers
 
-  model: "deepseek/deepseek-v4-flash"
+  model: "deepseek/deepseek-flash"
 
   api_key: ""                       # API Key (prefer using the AI_API_KEY environment variable)
 
